@@ -1,8 +1,10 @@
 const express = require("express");
+const bodyParser = require("body-parser");
 const templateRouter = express.Router();
 const db = require("../config/database");
 const multer = require('multer'); 
 const { v4: uuidv4 } = require("uuid");
+const authMisUser = require("../middlewares/authMW");
 
 // Set up multer storage (store files in memory as buffers)
 const storage = multer.memoryStorage(); // Stores files as buffers
@@ -11,11 +13,15 @@ fileSize: 1024 * 1024 * 5, // 5 MB file size limit
 
  });
 
+
+
 //add a CMS template
-templateRouter.post('/template/add', upload.fields([
+templateRouter.post('/template/add', authMisUser, upload.fields([
     { name: 'backgroundPicture', maxCount: 1 },
     { name: 'backgroundPictureBack', maxCount: 1 }
   ]), (req, res) => {
+
+   console.log("user Type", req.user.USER_TYPE);
     try{
 
         const {
@@ -65,7 +71,7 @@ templateRouter.post('/template/add', upload.fields([
   });
   
   //GET ALL templates
-  templateRouter.get('/all/templates', (req, res) => {
+  templateRouter.get('/all/templates', authMisUser, (req, res) => {
     const queryToFetchTemplates = `SELECT * FROM CMS_TEMPLATE_DETAILS`;
   
     db.all(queryToFetchTemplates, [], (err, rows) => {
@@ -98,7 +104,7 @@ templateRouter.post('/template/add', upload.fields([
   });
   
   //GET a specific template based on id
-  templateRouter.get('/template/fetch', (req, res) => {
+  templateRouter.get('/template/fetch', authMisUser, (req, res) => {
     const { id } = req.query; // Use req.query for query parameters
   
     if (!id) {
@@ -138,7 +144,7 @@ templateRouter.post('/template/add', upload.fields([
   
 
   //Modify a particular template
-  templateRouter.patch('/template/modify',upload.fields([
+  templateRouter.patch('/template/modify',authMisUser, upload.fields([
     { name: 'backgroundPicture', maxCount: 1 },
     { name: 'backgroundPictureBack', maxCount: 1 }
   ]) ,(req, res) => {
@@ -246,7 +252,7 @@ templateRouter.post('/template/add', upload.fields([
   
   
   //DELETE a particular template
-  templateRouter.delete('/template/delete', (req, res) => {
+  templateRouter.delete('/template/delete', authMisUser, (req, res) => {
     const { id } = req.query ;
     
     if (!id) {

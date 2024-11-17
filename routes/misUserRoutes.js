@@ -5,6 +5,7 @@ const { hashPassword, verifyPassword } = require("../utils/hashingService");
 const formatDate = require("../utils/formatDate");
 const db = require("../config/database");
 const { v4: uuidv4 } = require("uuid");
+const authMisUser = require("../middlewares/authMW");
 
 
 //Create a new MIS User
@@ -123,6 +124,7 @@ misUserRouter.post("/login", (req, res) => {
                       contact: selected_user_details.contact,
                       company: selected_user_details.company,
                       name: selected_user_details.name,
+                      userType:selected_user_details.USER_TYPE,
                       session_ID: sessionId,
                     };
 
@@ -144,10 +146,13 @@ misUserRouter.post("/login", (req, res) => {
 });
 
 //logout API for MIS User
-misUserRouter.post("/logout", (req, res) => {
-  const { SESSION_ID } = req.body;
+misUserRouter.post("/logout", authMisUser, (req, res) => {
+  
+  const user = req.user;
+  const  SESSION_ID  = req.sessionId;
 
   const queryToDeleteSession = `DELETE FROM MIS_USER_SESSION_DETAILS WHERE SESSION_ID=?`;
+
   db.run(queryToDeleteSession, [SESSION_ID], (err) => {
     if (err) {
       res.status(500).send("Error logging out " + err);

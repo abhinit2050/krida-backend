@@ -6,10 +6,11 @@ const db = require("../config/database");
 const { v4: uuidv4 } = require("uuid");
 const formatDate = require("../utils/formatDate");
 const moment = require("moment");
+const authMisUser = require("../middlewares/authMW");
 
 
 //fetch data of all active players
-metricRouter.get("/fetchActivePlayers", (req, res) => {
+metricRouter.get("/fetchActivePlayers", authMisUser, (req, res) => {
 
     let active_player_count=0;
     let todayDate = new Date();
@@ -44,7 +45,7 @@ metricRouter.get("/fetchActivePlayers", (req, res) => {
   });
   
   //fetch Active duration of all the players
-metricRouter.get("/active_duration_all", (req, res) => {
+metricRouter.get("/active_duration_all", authMisUser, (req, res) => {
 // Query the database to get playerID and login_time_stamp
 db.all(
     "SELECT PLAYERID, EMAIL_ID, LOGIN_TIME_STAMP FROM PLAYER_SESSION_DETAILS",
@@ -75,7 +76,7 @@ db.all(
 });
   
 //fetch count of total number of players
-metricRouter.get("/total_player_count", (req, res) => {
+metricRouter.get("/total_player_count", authMisUser, (req, res) => {
 db.get(
     "SELECT count(*) AS total_player_count from PLAYERS",
     (err, resCount) => {
@@ -91,7 +92,7 @@ db.get(
 
 
 //fetch details of all the games played between 2 dates (both inclusive)
-metricRouter.get("/game_total_count", (req, res) => {
+metricRouter.get("/game_total_count", authMisUser, (req, res) => {
 // Extract the from date and to date from the query parameters
 const fromDate = req.query.fromDate;
 const toDate = req.query.toDate;
@@ -120,7 +121,7 @@ db.get(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
 });
   
 //fetch unique players who played between 2 dates (both inclusive)
-metricRouter.get("/unique_player_count", (req, res) => {
+metricRouter.get("/unique_player_count", authMisUser, (req, res) => {
 // Extract the from date and to date from the query parameters
 const fromDate = req.query.fromDate;
 const toDate = req.query.toDate;
@@ -139,8 +140,8 @@ db.get(queryToFetchUniquePlayers, [fromDate, toDate], (err, row) => {
 });
 });
   
-//fetch the count of players registered between 2 dates (both inclusive)
-metricRouter.get("/new_player_count", (req, res) => {
+//fetch the count of players registered between 2 dates (both inclusive) 
+metricRouter.get("/new_player_count", authMisUser, (req, res) => {
 // Extract the from date and to date from the query parameters
 let fromDate = req.query.fromDate;
 let toDate = req.query.toDate;

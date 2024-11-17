@@ -6,20 +6,20 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const axios = require('axios');
-const { hashPassword, verifyPassword } = require("./utils/hashingService");
-const { v4: uuidv4 } = require("uuid");
-const moment = require("moment");
+// const axios = require('axios');
+// const { hashPassword, verifyPassword } = require("./utils/hashingService");
+// const { v4: uuidv4 } = require("uuid");
+// const moment = require("moment");
 const multer = require('multer'); 
 const db = require("./config/database");
-
+const formatDate = require("./utils/formatDate");
 const app = express();
 
-const storage = multer.memoryStorage(); // Stores files as buffers
-const upload = multer({ storage: storage,
-fileSize: 1024 * 1024 * 5, // 5 MB file size limit
+// const storage = multer.memoryStorage(); // Stores files as buffers
+// const upload = multer({ storage: storage,
+// fileSize: 1024 * 1024 * 5, // 5 MB file size limit
 
- });
+//  });
 
 app.use(express.json()); 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -42,7 +42,8 @@ app.use("/", gameRouter);
 db.serialize(() => {
   //Create a table for MIS users
   db.run(
-    "CREATE TABLE IF NOT EXISTS MIS_USERS (id INTEGER PRIMARY KEY, name TEXT, email_ID TEXT UNIQUE, PASSWORD TEXT ,company TEXT, contact INTEGER, Registration_Date TEXT);"
+    `CREATE TABLE IF NOT EXISTS MIS_USERS (id INTEGER PRIMARY KEY, name TEXT, email_ID TEXT UNIQUE, 
+    PASSWORD TEXT ,company TEXT, contact INTEGER, Registration_Date TEXT, USER_TYPE TEXT);`
   );
 
   //Create a table for session details of MIS users
@@ -152,23 +153,6 @@ app.get("/", (req, res) => {
   res.send("You have landed on Home page of server");
 });
 
-
-//Add a Game
-// app.post("/addGame", (req, res) => {
-//   const { NAME } = req.body;
-
-
-//   // Insert the new game into the database
-//   db.run(`INSERT INTO GAMES (NAME) VALUES (?)`, [NAME], function (err) {
-//     if (err) {
-//       console.error(err.message);
-//       return res.status(500).send("Internal Server Error");
-//     }
-
-//     console.log(`A new game has been added with ID: ${this.lastID}`);
-//     res.status(201).send("Game created successfully");
-//   });
-// });
 
 
 //Listening on port 3500
