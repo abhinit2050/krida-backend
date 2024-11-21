@@ -10,6 +10,9 @@ const authMisUser = require("../middlewares/authMW");
 
 //Create a new MIS User
 misUserRouter.post("/createUser", (req, res) => {
+
+  console.log("Inside MIS Create user");
+  
     const { name, company, contact, email_ID, PASSWORD } = req.body;
     let finalEncryptedPassword;
   

@@ -26,14 +26,14 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 
-const templateRouter = require("./routes/templateRoutes");
 const misUserRouter = require("./routes/misUserRoutes");
+const templateRouter = require("./routes/templateRoutes");
 const playerRouter = require("./routes/playerRoutes");
 const metricRouter = require("./routes/metricRoutes");
 const gameRouter = require("./routes/gameRoutes");
 
-app.use("/",templateRouter);
 app.use("/", misUserRouter);
+app.use("/",templateRouter);
 app.use("/", playerRouter);
 app.use("/", metricRouter);
 app.use("/", gameRouter);
@@ -150,6 +150,7 @@ setInterval(deleteAllObsoleteSessions, 600000);
 
 //Home page route
 app.get("/", (req, res) => {
+  console.log("Home page API hit");
   res.send("You have landed on Home page of server");
 });
 
