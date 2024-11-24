@@ -40,11 +40,23 @@ app.use("/", gameRouter);
 
 
 db.serialize(() => {
+
+  //Create a table for Clients
+  db.run(`CREATE TABLE IF NOT EXISTS CLIENTS (id INTEGER PRIMARY KEY, Client_Name TEXT, Client_email TEXT UNIQUE, Client_GST TEXT UNIQUE,
+         Client_Address TEXT, contact INTEGER unique, Client_Category TEXT, Onboarding_date Time)`);
+
+  //Create a table for client purchase details
+  db.run(`CREATE TABLE IF NOT EXISTS Client_purchases_record (id INTEGER PRIMARY KEY, Client_Id TEXT, Games_purchased TEXT,
+           Pack_valid_till TIME)`);
+
   //Create a table for MIS users
   db.run(
     `CREATE TABLE IF NOT EXISTS MIS_USERS (id INTEGER PRIMARY KEY, name TEXT, email_ID TEXT UNIQUE, 
-    PASSWORD TEXT ,company TEXT, contact INTEGER, Registration_Date TEXT, USER_TYPE TEXT);`
+    PASSWORD TEXT ,company TEXT, contact INTEGER unique, Registration_Date TEXT, USER_TYPE TEXT, default_Pwd boolean);`
   );
+
+  //Create a table for user types
+  db.run(`CREATE TABLE IF NOT EXISTS User_Type (id INTEGER PRIMARY KEY, user_type_value TEXT)`);
 
   //Create a table for session details of MIS users
   db.run(

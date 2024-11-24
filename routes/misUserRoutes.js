@@ -10,10 +10,8 @@ const authMisUser = require("../middlewares/authMW");
 
 //Create a new MIS User
 misUserRouter.post("/createUser", (req, res) => {
-
-  console.log("Inside MIS Create user");
   
-    const { name, company, contact, email_ID, PASSWORD } = req.body;
+    const { name, company, contact, email_ID, PASSWORD, user_Type } = req.body;
     let finalEncryptedPassword;
   
     async function Encrypter(plainText) {
@@ -32,8 +30,8 @@ misUserRouter.post("/createUser", (req, res) => {
       const reg_date = formatDate(tempDate);
       // Insert the new MIS User into the database
       db.run(
-        `INSERT INTO MIS_Users (name, company, contact, email_ID, PASSWORD, Registration_Date) VALUES (?, ?, ?,?,?,?)`,
-        [name, company, contact, email_ID, finalEncryptedPassword, reg_date],
+        `INSERT INTO MIS_Users (name, company, contact, email_ID, PASSWORD, USER_TYPE, Registration_Date, default_Pwd) VALUES (?,?,?,?,?,?,?,?)`,
+        [name, company, contact, email_ID, finalEncryptedPassword, user_Type, reg_date, true],
         function (err) {
           if (err) {
             console.error(err.message);
@@ -71,6 +69,7 @@ misUserRouter.post("/login", (req, res) => {
       selected_user_details = result;
       console.log(`Match found - ${result.email_ID}`);
 
+
       db.get(queryToFetchPassword, [email_ID], (err, result_pwd) => {
         if (err) {
           console.error("Error checking credentials:", err.message);
@@ -85,6 +84,13 @@ misUserRouter.post("/login", (req, res) => {
           hashPassword(PASSWORD).then(() => {
             verifyPassword(PASSWORD, result_pwd.PASSWORD).then((resp) => {
               if (resp) {
+
+                if(result.default_Pwd == true){
+                  return res.status(210).json({
+                    message:"Default password detected"
+                  })
+                }
+
                 // Generate a UUID (Universally Unique Identifier)
                 const uuid = uuidv4();
 
@@ -164,5 +170,49 @@ misUserRouter.post("/logout", authMisUser, (req, res) => {
   });
   res.status(200).send("Logout successful!");
 });
+
+//update password of an MIS user
+misUserRouter.patch("/updatePassword",async (req, res)=>{
+  
+  const {email_ID, PASSWORD } = req.body;
+  const queryToFetchUser = `SELECT * from MIS_USERS WHERE email_ID = ?`;
+  const newPassword = await hashPassword(PASSWORD);
+
+  db.get(queryToFetchUser, [email_ID], async (err, result) => {
+    if (err) {
+      console.error("Error checking credentials:", err.message);
+      res.status(500).json({ error: "Internal server error" });
+      return;
+    }
+    if (!result) {
+      console.log(`No user found! - ${email_ID}`);
+      res.status(401).json({ error: `No user found! - ${email_ID}` });
+      return;
+    }
+    if (result) {
+      //user found
+      selected_user_details = result;
+      
+      const updateMISuser = `UPDATE MIS_USERS SET PASSWORD = ?, default_Pwd=false WHERE email_ID = ?` ;
+      db.run(updateMISuser,[newPassword, selected_user_details.email_ID],(err, updResult)=>{
+        if (err) {
+          console.error(err.message);
+          return res.status(500).json({ error: "Failed to update the record" });
+      }
+
+      res.status(200).json({
+          message: "Password updated successfully",
+         
+      });
+      })
+
+    }
+  })
+
+})
+
+//add purchased games API to add data to client_purchases_record table
+//add fetch all games
+//add fetch all games for a particular client
 
 module.exports = misUserRouter
