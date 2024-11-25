@@ -31,12 +31,14 @@ const templateRouter = require("./routes/templateRoutes");
 const playerRouter = require("./routes/playerRoutes");
 const metricRouter = require("./routes/metricRoutes");
 const gameRouter = require("./routes/gameRoutes");
+const clientRouter = require("./routes/clientsRoutes");
 
 app.use("/", misUserRouter);
 app.use("/",templateRouter);
 app.use("/", playerRouter);
 app.use("/", metricRouter);
 app.use("/", gameRouter);
+app.use("/", clientRouter)
 
 
 db.serialize(() => {
@@ -52,7 +54,7 @@ db.serialize(() => {
   //Create a table for MIS users
   db.run(
     `CREATE TABLE IF NOT EXISTS MIS_USERS (id INTEGER PRIMARY KEY, name TEXT, email_ID TEXT UNIQUE, 
-    PASSWORD TEXT ,company TEXT, contact INTEGER unique, Registration_Date TEXT, USER_TYPE TEXT, default_Pwd boolean);`
+    PASSWORD TEXT ,company TEXT, contact INTEGER unique, Registration_Date TEXT, USER_TYPE TEXT, default_Pwd boolean, client_id TEXT);`
   );
 
   //Create a table for user types
@@ -61,8 +63,7 @@ db.serialize(() => {
   //Create a table for session details of MIS users
   db.run(
     `CREATE TABLE IF NOT EXISTS MIS_USER_SESSION_DETAILS (id INTEGER PRIMARY KEY, MIS_USER_ID INT, name TEXT, email_ID TEXT, company TEXT, 
-      contact INT, Login_Time TEXT ,SESSION_ID CHAR(16) UNIQUE);`
-  );
+    client_id TEXT, contact INT, Login_Time TEXT ,SESSION_ID CHAR(16) UNIQUE);`);
 
   //Create a table for Players
   db.run(

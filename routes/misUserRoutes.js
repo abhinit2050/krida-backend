@@ -11,7 +11,7 @@ const authMisUser = require("../middlewares/authMW");
 //Create a new MIS User
 misUserRouter.post("/createUser", (req, res) => {
   
-    const { name, company, contact, email_ID, PASSWORD, user_Type } = req.body;
+    const { name, company, contact, email_ID, PASSWORD, user_Type, client_id } = req.body;
     let finalEncryptedPassword;
   
     async function Encrypter(plainText) {
@@ -30,8 +30,9 @@ misUserRouter.post("/createUser", (req, res) => {
       const reg_date = formatDate(tempDate);
       // Insert the new MIS User into the database
       db.run(
-        `INSERT INTO MIS_Users (name, company, contact, email_ID, PASSWORD, USER_TYPE, Registration_Date, default_Pwd) VALUES (?,?,?,?,?,?,?,?)`,
-        [name, company, contact, email_ID, finalEncryptedPassword, user_Type, reg_date, true],
+        `INSERT INTO MIS_Users (name, company, contact, email_ID, PASSWORD, USER_TYPE, Registration_Date, default_Pwd, client_id) 
+        VALUES (?,?,?,?,?,?,?,?,?)`,
+        [name, company, contact, email_ID, finalEncryptedPassword, user_Type, reg_date, true, client_id],
         function (err) {
           if (err) {
             console.error(err.message);
@@ -103,8 +104,8 @@ misUserRouter.post("/login", (req, res) => {
 
                 //Add a record to MIS_USER_SESSION_DETAILS
                 const insertQueryforMisUserSession = `INSERT INTO MIS_USER_SESSION_DETAILS 
-                                                    (MIS_USER_ID, name, email_ID, company, contact, Login_Time, SESSION_ID) 
-                                                    VALUES (?, ?, ?, ?, ?, ?, ?)`;
+                                                    (MIS_USER_ID, name, email_ID, company, contact, Login_Time, client_id, SESSION_ID) 
+                                                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
                 db.run(
                   insertQueryforMisUserSession,
@@ -115,6 +116,7 @@ misUserRouter.post("/login", (req, res) => {
                     selected_user_details.company,
                     selected_user_details.contact,
                     logintime2,
+                    selected_user_details.client_id,
                     sessionId,
                   ],
                   (err_insert) => {
@@ -132,6 +134,7 @@ misUserRouter.post("/login", (req, res) => {
                       email_ID: selected_user_details.email_ID,
                       contact: selected_user_details.contact,
                       company: selected_user_details.company,
+                      client_id:selected_user_details.client_id,
                       name: selected_user_details.name,
                       userType:selected_user_details.USER_TYPE,
                       session_ID: sessionId,
@@ -141,7 +144,7 @@ misUserRouter.post("/login", (req, res) => {
                   }
                 );
 
-                console.log("Session ID:", sessionId);
+                
               } else {
                 res.status(401).json({ error: `Incorrect Password` });
                 return;
@@ -172,7 +175,7 @@ misUserRouter.post("/logout", authMisUser, (req, res) => {
 });
 
 //update password of an MIS user
-misUserRouter.patch("/updatePassword",async (req, res)=>{
+misUserRouter.patch("/updatePassword",authMisUser, async (req, res)=>{
   
   const {email_ID, PASSWORD } = req.body;
   const queryToFetchUser = `SELECT * from MIS_USERS WHERE email_ID = ?`;

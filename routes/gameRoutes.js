@@ -21,4 +21,27 @@ gameRouter.post("/addGame", authMisUser, (req, res) => {
 });
 
 
+gameRouter.get("/allGames", authMisUser, (req, res)=>{
+
+  try{
+    const querytoFetchAllGames = `SELECT * FROM GAMES`;
+
+    db.all(querytoFetchAllGames, (err, result)=>{
+  
+      if(err){
+        res.status(500).send("Error fetching results! "+err);
+      }
+      else{
+        res.json({
+          message:"Results fetched!",
+          data: result
+        })
+      }
+    })
+  }catch(err){
+    res.status(500).send("Something went wrong! "+err);
+  }
+  
+})
+
 module.exports = gameRouter;
