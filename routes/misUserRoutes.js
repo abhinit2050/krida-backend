@@ -78,7 +78,8 @@ misUserRouter.post("/login", (req, res) => {
           return;
         }
         if (result_pwd) {
-          //console.log(result_pwd.PASSWORD);
+          // Generate a UUID (Universally Unique Identifier)
+          const uuid = uuidv4();
 
           //now verifying the password
 
@@ -86,14 +87,14 @@ misUserRouter.post("/login", (req, res) => {
             verifyPassword(PASSWORD, result_pwd.PASSWORD).then((resp) => {
               if (resp) {
 
+                const temp_sessionid = uuid.substr(0, 16);
+
                 if(result.default_Pwd == true){
                   return res.status(210).json({
-                    message:"Default password detected"
+                    message:"Default password detected",
+                    temp_sessionid: temp_sessionid
                   })
                 }
-
-                // Generate a UUID (Universally Unique Identifier)
-                const uuid = uuidv4();
 
                 // Extract the first 16 characters as your session ID
                 const sessionId = uuid.substr(0, 16);
@@ -212,10 +213,54 @@ misUserRouter.patch("/updatePassword",authMisUser, async (req, res)=>{
     }
   })
 
+});
+
+misUserRouter.post("/purchaseGames", authMisUser, async(req, res)=>{
+
+  try{
+    const {client_id, games_purchased, Pack_valid_till} = req.body;
+    const purchase_date = formatDate(new Date());
+  
+    const querytoPurchaseGames = `INSERT INTO Client_purchases_record (client_id, games_purchased, Last_Purchase_Date, Pack_valid_till) 
+                                  VALUES(?,?,?,?)`; 
+    
+    db.run(querytoPurchaseGames,[client_id, games_purchased, purchase_date, Pack_valid_till],(err, result)=>{
+          if(err){
+            res.send("Error adding record "+err);
+          }
+        res.json({
+          message:"Games purchase successful!"
+        })
+    })
+  }catch(err){
+    res.status(500).send("Something went wrong", err);
+  }
+  
+});
+
+misUserRouter.get("/clientpurchasedGames", authMisUser, async (req, res)=>{
+
+  try{
+    const client_id = req.query.client_id;
+
+    const querytoFetchClientPurchasedGames = `SELECT Games_purchased from Client_purchases_record WHERE Client_Id = ${client_id}`;
+  
+    db.all(querytoFetchClientPurchasedGames, (err, result)=>{
+          if(err){
+            res.send("Error fetching records! ", err);
+          }
+
+          res.json({
+            message:"List fetched successfully!",
+            data: result
+          })
+    })
+  }catch(err){
+    res.status(500).send("Something went wrong ", err);
+  }
+  
 })
 
-//add purchased games API to add data to client_purchases_record table
-//add fetch all games
-//add fetch all games for a particular client
+
 
 module.exports = misUserRouter
