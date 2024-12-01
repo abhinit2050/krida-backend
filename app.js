@@ -6,20 +6,11 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-// const axios = require('axios');
-// const { hashPassword, verifyPassword } = require("./utils/hashingService");
-// const { v4: uuidv4 } = require("uuid");
-// const moment = require("moment");
 const multer = require('multer'); 
 const db = require("./config/database");
 const formatDate = require("./utils/formatDate");
 const app = express();
 
-// const storage = multer.memoryStorage(); // Stores files as buffers
-// const upload = multer({ storage: storage,
-// fileSize: 1024 * 1024 * 5, // 5 MB file size limit
-
-//  });
 
 app.use(express.json()); 
 app.use(bodyParser.urlencoded({ extended: false }));

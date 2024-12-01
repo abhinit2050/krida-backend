@@ -103,6 +103,33 @@ misUserRouter.post("/login", (req, res) => {
                 const mis_user_login_time = new Date();
                 const logintime2 = formatDate(mis_user_login_time);
 
+
+                const queryToDetectDuplicateSession = `SELECT * from MIS_USER_SESSION_DETAILS WHERE email_ID=?`;
+
+                db.all(queryToDetectDuplicateSession,[selected_user_details.email_ID], (err, res_dup_sessions)=>{
+                  if(err){
+                    // res.status(500).json({ error: "Internal server error" });
+                    // return;
+                    console.log(err);
+                  } else if(res_dup_sessions){
+                    let duplicate_sessionIDs = res_dup_sessions.map(session => session.SESSION_ID);
+                    duplicate_sessionIDs = duplicate_sessionIDs.map(s => `'${s}'`);
+                     duplicate_sessionIDs = duplicate_sessionIDs.join(",");
+
+                    const queryToDeleteDupSessions = ` DELETE FROM MIS_USER_SESSION_DETAILS WHERE session_ID IN (${duplicate_sessionIDs})`
+
+                    console.log(queryToDeleteDupSessions);
+                    db.run(queryToDeleteDupSessions, (err, del_result) =>{
+                      
+                      if(err){
+                        console.log(err);
+                      } else {
+                        console.log("Duplicate sessions deleted!")
+                      }
+                    })
+                  }
+                })
+
                 //Add a record to MIS_USER_SESSION_DETAILS
                 const insertQueryforMisUserSession = `INSERT INTO MIS_USER_SESSION_DETAILS 
                                                     (MIS_USER_ID, name, email_ID, company, contact, Login_Time, client_id, SESSION_ID) 
