@@ -39,7 +39,7 @@ db.serialize(() => {
          Client_Address TEXT, contact INTEGER unique, Client_Category TEXT, Onboarding_date Time)`);
 
   //Create a table for client purchase details
-  db.run(`CREATE TABLE IF NOT EXISTS Client_purchases_record (id INTEGER PRIMARY KEY, Client_Id TEXT, Games_purchased TEXT, 
+  db.run(`CREATE TABLE IF NOT EXISTS Client_purchases_record (id INTEGER PRIMARY KEY, Client_Id TEXT, Game_purchased_id TEXT, 
      Last_Purchase_date TIME, Pack_valid_till TIME)`);
 
   //Create a table for MIS users

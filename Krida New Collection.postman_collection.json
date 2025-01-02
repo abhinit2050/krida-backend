@@ -1,0 +1,2513 @@
+{
+	"info": {
+		"_postman_id": "d5b93892-9e31-4c36-b629-36f98b45f9b5",
+		"name": "Krida New Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13231311",
+		"_collection_link": "https://restless-crater-213300.postman.co/workspace/Krida-Backend~880353cc-cf58-4602-96c6-846cd746e8a8/collection/13231311-d5b93892-9e31-4c36-b629-36f98b45f9b5?action=share&source=collection_link&creator=13231311"
+	},
+	"item": [
+		{
+			"name": "Logout Production",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "b85bfb72-ba36-4d",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "SESSION_ID",
+							"value": "b85bfb72-ba36-4d",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "http://3.111.55.132:3500/logout",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"logout"
+					],
+					"query": [
+						{
+							"key": "SESSION_ID",
+							"value": "d8721c03-7d04-41",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout Development",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "$base_URL/logout",
+					"host": [
+						"$base_URL"
+					],
+					"path": [
+						"logout"
+					],
+					"query": [
+						{
+							"key": "SESSION_ID",
+							"value": "c9d63da3-861c-4b",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout Player development",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "SESSION_ID",
+							"value": "e377d6a4-9e63-48",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3500/logoutPlayer",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"logoutPlayer"
+					],
+					"query": [
+						{
+							"key": "SESSION_ID",
+							"value": "d8721c03-7d04-41",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout Player Production",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "SESSION_ID",
+							"value": "6a66bc17-c1de-4e",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://3.111.58.163:3500/logoutPlayer",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"58",
+						"163"
+					],
+					"port": "3500",
+					"path": [
+						"logoutPlayer"
+					],
+					"query": [
+						{
+							"key": "SESSION_ID",
+							"value": "c55e9054-bb1d-4e",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Player Development",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "NAME",
+							"value": "Glenn Quagmire",
+							"type": "text"
+						},
+						{
+							"key": "contact",
+							"value": "696969",
+							"type": "text"
+						},
+						{
+							"key": "EMAIL_ID",
+							"value": "glenn@familyguy.com",
+							"type": "text"
+						},
+						{
+							"key": "CLIENT_IP",
+							"value": "101.241.33.32",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3500/addPlayer",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"addPlayer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Player Production",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "NAME",
+							"value": "Thomas Edison",
+							"type": "text"
+						},
+						{
+							"key": "contact",
+							"value": "202022",
+							"type": "text"
+						},
+						{
+							"key": "CLIENT_IP",
+							"value": "98.97.96.9",
+							"type": "text"
+						},
+						{
+							"key": "EMAIL_ID",
+							"value": "edison@lightbulb.com",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://3.111.55.132:3500/addPlayer",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"addPlayer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login Player Development - IP",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "contact",
+							"value": "2222",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "platform",
+							"value": "laptop",
+							"type": "text"
+						},
+						{
+							"key": "GAME_PLAYED",
+							"value": "REVEAL THE CARD",
+							"type": "text"
+						},
+						{
+							"key": "CLIENT_IP",
+							"value": "101.241.33.32",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3500/loginPlayerip",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"loginPlayerip"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login Player Development - Credentials",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "contact",
+							"value": "696970",
+							"type": "text"
+						},
+						{
+							"key": "platform",
+							"value": "Tablet",
+							"type": "text"
+						},
+						{
+							"key": "GAME_PLAYED",
+							"value": "Spin the Wheel",
+							"type": "text"
+						},
+						{
+							"key": "CLIENT_IP",
+							"value": "12.13.14.15",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3500/loginPlayerCredentials",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"loginPlayerCredentials"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login Player Production",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "contact",
+							"value": "333333",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "platform",
+							"value": "Laptop",
+							"type": "text"
+						},
+						{
+							"key": "GAME_PLAYED",
+							"value": "Flip the card",
+							"type": "text"
+						},
+						{
+							"key": "CLIENT_IP",
+							"value": "100.101.102.104",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://3.111.55.132:3500/loginPlayerip",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"loginPlayerip"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login MIS USER Development",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email_ID",
+							"value": "cbing@friends.org",
+							"type": "text"
+						},
+						{
+							"key": "PASSWORD",
+							"value": "CBing@1234",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3500/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login MIS USER Production",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email_ID",
+							"value": "jswanson@familyguy.org",
+							"type": "text"
+						},
+						{
+							"key": "PASSWORD",
+							"value": "Jswanson@123",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://3.111.55.132:3500/login",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create MIS User Production",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "name",
+							"value": "Joe Swanson",
+							"type": "text"
+						},
+						{
+							"key": "contact",
+							"value": "20122022",
+							"type": "text"
+						},
+						{
+							"key": "email_ID",
+							"value": "jswanson@familyguy.org",
+							"type": "text"
+						},
+						{
+							"key": "company",
+							"value": "Family Guy",
+							"type": "text"
+						},
+						{
+							"key": "PASSWORD",
+							"value": "Jswanson@123",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://3.111.55.132:3500/createUser",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"createUser"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create MIS User Development",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "name",
+							"value": "Chandler Bing",
+							"type": "text"
+						},
+						{
+							"key": "contact",
+							"value": "20152025",
+							"type": "text"
+						},
+						{
+							"key": "email_ID",
+							"value": "cbing@friends.org",
+							"type": "text"
+						},
+						{
+							"key": "company",
+							"value": "FRIENDS",
+							"type": "text"
+						},
+						{
+							"key": "PASSWORD",
+							"value": "CBing@123",
+							"type": "text"
+						},
+						{
+							"key": "user_Type",
+							"value": "Agent",
+							"type": "text"
+						},
+						{
+							"key": "client_id",
+							"value": "4",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3500/createUser",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"createUser"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch Active Players - Development",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://localhost:3500/fetchActivePlayers",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"fetchActivePlayers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch All templates - Development",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://localhost:3500/all/templates",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"all",
+						"templates"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch All templates - Production",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "64147585-cd67-49",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://3.111.55.132:3500/all/templates",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"all",
+						"templates"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch total player count - Development",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://localhost:3500/total_player_count",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"total_player_count"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch total player count - Production",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://3.111.55.132:3500/total_player_count",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"total_player_count"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch New player count - Production",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "SESSION_ID",
+							"value": "45bf0828-ee21-4b",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://3.111.58.163:3500/new_player_count?fromDate=01-11-2024T00:00:00&toDate=17-11-2024T23:59:59",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"58",
+						"163"
+					],
+					"port": "3500",
+					"path": [
+						"new_player_count"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "01-11-2024T00:00:00"
+						},
+						{
+							"key": "toDate",
+							"value": "17-11-2024T23:59:59"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch Average Play time of a Game - development",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://localhost:3500/averagePlayTime?fromDate=08-03-2024T00:00:00&toDate=17-11-2024T23:59:59&GAME_PLAYED=Sling and Hit",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"averagePlayTime"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "08-03-2024T00:00:00"
+						},
+						{
+							"key": "toDate",
+							"value": "17-11-2024T23:59:59"
+						},
+						{
+							"key": "GAME_PLAYED",
+							"value": "Sling and Hit"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch Average Play time of a Game - Production",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://3.111.58.163:3500/averagePlayTime?fromDate=08-03-2024T00:00:00&toDate=09-03-2024T23:59:59&GAME_PLAYED=Spin the Wheel",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"58",
+						"163"
+					],
+					"port": "3500",
+					"path": [
+						"averagePlayTime"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "08-03-2024T00:00:00"
+						},
+						{
+							"key": "toDate",
+							"value": "09-03-2024T23:59:59"
+						},
+						{
+							"key": "GAME_PLAYED",
+							"value": "Spin the Wheel"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch Active Players - Production",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://3.111.55.132:3500/fetchActivePlayers",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"fetchActivePlayers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch active duration all players - development",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://localhost:3500/active_duration_all",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"active_duration_all"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch active duration all players - Production",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://3.111.58.163:3500/active_duration_all",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"58",
+						"163"
+					],
+					"port": "3500",
+					"path": [
+						"active_duration_all"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch New player count - Development",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3500/new_player_count?fromDate=01-03-2024T00:00:00&toDate=04-03-2024T23:59:59",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"new_player_count"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "01-03-2024T00:00:00"
+						},
+						{
+							"key": "toDate",
+							"value": "04-03-2024T23:59:59"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch Game total count - Development",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://localhost:3500/game_total_count?fromDate=01-03-2024T00:30:00&toDate=17-11-2024T23:59:59",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"game_total_count"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "01-03-2024T00:30:00"
+						},
+						{
+							"key": "toDate",
+							"value": "17-11-2024T23:59:59"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Average games per player - Development",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://localhost:3500/games_per_player?fromDate=01-03-2024T00:00:00&toDate=17-11-2024T23:59:59",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"games_per_player"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "01-03-2024T00:00:00"
+						},
+						{
+							"key": "toDate",
+							"value": "17-11-2024T23:59:59"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Average games per player - Prod",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://3.111.58.163:3500/games_per_player?fromDate=01-03-2024T00:00:00&toDate=04-03-2024T23:59:59",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"58",
+						"163"
+					],
+					"port": "3500",
+					"path": [
+						"games_per_player"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "01-03-2024T00:00:00"
+						},
+						{
+							"key": "toDate",
+							"value": "04-03-2024T23:59:59"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Individual Game count - Development",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3500/each_game_count?fromDate=01-03-2024T00:00:00&toDate=13-11-2024T23:59:59",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"each_game_count"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "01-03-2024T00:00:00"
+						},
+						{
+							"key": "toDate",
+							"value": "13-11-2024T23:59:59"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Individual Game count - Production",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://3.111.58.163:3500/each_game_count?fromDate=01-03-2024T00:00:00&toDate=04-03-2024T23:59:59",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"58",
+						"163"
+					],
+					"port": "3500",
+					"path": [
+						"each_game_count"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "01-03-2024T00:00:00"
+						},
+						{
+							"key": "toDate",
+							"value": "04-03-2024T23:59:59"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch Game total count - Production",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://3.111.58.163:3500/game_total_count?fromDate=03-03-2024T11:30:00&toDate=07-03-2024T59:59:59",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"58",
+						"163"
+					],
+					"port": "3500",
+					"path": [
+						"game_total_count"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "03-03-2024T11:30:00"
+						},
+						{
+							"key": "toDate",
+							"value": "07-03-2024T59:59:59"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch total unique players count - Development",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://localhost:3500/unique_player_count?fromDate=01-03-2024T00:00:00&toDate=17-11-2024T23:59:59",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"unique_player_count"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "01-03-2024T00:00:00"
+						},
+						{
+							"key": "toDate",
+							"value": "17-11-2024T23:59:59"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch total returning players count - Development",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://localhost:3500/ret_player_count?fromDate=01-03-2024T00:00:00&toDate=17-11-2024T59:59:59",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"ret_player_count"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "01-03-2024T00:00:00"
+						},
+						{
+							"key": "toDate",
+							"value": "17-11-2024T59:59:59"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch total returning players count - Production",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://3.111.58.163:3500/ret_player_count?fromDate=01-03-2024T00:00:00&toDate=10-03-2024T59:59:59",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"58",
+						"163"
+					],
+					"port": "3500",
+					"path": [
+						"ret_player_count"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "01-03-2024T00:00:00"
+						},
+						{
+							"key": "toDate",
+							"value": "10-03-2024T59:59:59"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch total unique players count - Production",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://3.111.58.163:3500/unique_player_count?fromDate=03-03-2024T00:00:00&toDate=07-03-2024T59:59:59",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"58",
+						"163"
+					],
+					"port": "3500",
+					"path": [
+						"unique_player_count"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "03-03-2024T00:00:00"
+						},
+						{
+							"key": "toDate",
+							"value": "07-03-2024T59:59:59"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Game Development",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "b85bfb72-ba36-4d",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "NAME",
+							"value": "Reveal the card",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3500/addGame",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"addGame"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Game Production",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "64147585-cd67-49",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "NAME",
+							"value": "table tennis",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://3.111.55.132:3500/addGame",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"addGame"
+					],
+					"query": [
+						{
+							"key": "NAME",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Player",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "NAME",
+							"value": "Harry Truman",
+							"type": "text"
+						},
+						{
+							"key": "EMAIL_ID",
+							"value": "h.truman@potus.us",
+							"type": "text"
+						},
+						{
+							"key": "contact",
+							"value": "868562",
+							"type": "text"
+						},
+						{
+							"key": "CLIENT_IP",
+							"value": "0.0.0.0",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3500/updatePlayer",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"updatePlayer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Player Prod",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "NAME",
+							"value": "Jimmy Anderson",
+							"type": "text"
+						},
+						{
+							"key": "EMAIL_ID",
+							"value": "jimmy@ecb.org",
+							"type": "text"
+						},
+						{
+							"key": "contact",
+							"value": "600201",
+							"type": "text"
+						},
+						{
+							"key": "CLIENT_IP",
+							"value": "99.98.97.96",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://3.111.55.132:3500/updatePlayer",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"updatePlayer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Duplicate Player check",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://localhost:3500/playerdupcheck?CLIENT_IP=45.127.45.238",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"playerdupcheck"
+					],
+					"query": [
+						{
+							"key": "CLIENT_IP",
+							"value": "45.127.45.238"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Duplicate Player check Prod",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://3.111.55.132:3500/playerdupcheck?CLIENT_IP=30.31.32.33",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"playerdupcheck"
+					],
+					"query": [
+						{
+							"key": "CLIENT_IP",
+							"value": "30.31.32.33"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Player Development",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "NAME",
+							"value": "Glenn Quagmire",
+							"type": "text"
+						},
+						{
+							"key": "contact",
+							"value": "696970",
+							"type": "text"
+						},
+						{
+							"key": "EMAIL_ID",
+							"value": "glenn@familyguy.com",
+							"type": "text"
+						},
+						{
+							"key": "CLIENT_IP",
+							"value": "101.241.33.32",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3500/updatePlayer",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"updatePlayer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Player Production",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "NAME",
+							"value": "Jimmy Anderson",
+							"type": "text"
+						},
+						{
+							"key": "EMAIL_ID",
+							"value": "jimmy@ecb.org",
+							"type": "text"
+						},
+						{
+							"key": "contact",
+							"value": "700700",
+							"type": "text"
+						},
+						{
+							"key": "CLIENT_IP",
+							"value": "99.98.97.96",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://3.111.55.132:3500/updatePlayer",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"updatePlayer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add CMS template - Development",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "templateName",
+							"value": "fresh template7",
+							"type": "text"
+						},
+						{
+							"key": "summary",
+							"value": "fresh summary7",
+							"type": "text"
+						},
+						{
+							"key": "backGroundColor",
+							"value": "#f26522b",
+							"type": "text"
+						},
+						{
+							"key": "hiddenText",
+							"value": "fresh award5",
+							"type": "text"
+						},
+						{
+							"key": "cardFrontText",
+							"value": "fresh front text5",
+							"type": "text"
+						},
+						{
+							"key": "fontSize",
+							"value": "12",
+							"type": "text"
+						},
+						{
+							"key": "fontFamily",
+							"value": "fresh font5",
+							"type": "text"
+						},
+						{
+							"key": "cardTextColor",
+							"value": "color5",
+							"type": "text"
+						},
+						{
+							"key": "cardColor",
+							"value": "red",
+							"type": "text"
+						},
+						{
+							"key": "backgroundPicture",
+							"type": "file",
+							"src": "/Users/abhinitrai/Downloads/brain_tumor_dataset/yes/Y2.jpg"
+						},
+						{
+							"key": "backgroundPictureBack",
+							"type": "file",
+							"src": "/Users/abhinitrai/Downloads/brain_tumor_dataset/yes/Y3.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3500/template/add",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"template",
+						"add"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Modify CMS template - Development",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "templateName",
+							"value": "abhi template9",
+							"type": "text"
+						},
+						{
+							"key": "summary",
+							"value": "abhi summary9",
+							"type": "text"
+						},
+						{
+							"key": "backGroundColor",
+							"value": "#f26522b",
+							"type": "text"
+						},
+						{
+							"key": "hiddenText",
+							"value": "award hai idhar-mod",
+							"type": "text"
+						},
+						{
+							"key": "cardFrontText",
+							"value": "open-mod",
+							"type": "text"
+						},
+						{
+							"key": "fontSize",
+							"value": "12",
+							"type": "text"
+						},
+						{
+							"key": "fontFamily",
+							"value": "times new roman",
+							"type": "text"
+						},
+						{
+							"key": "backgroundPicture",
+							"value": "''",
+							"type": "text"
+						},
+						{
+							"key": "backgroundPictureBack",
+							"value": "''",
+							"type": "text"
+						},
+						{
+							"key": "cardTextColor",
+							"value": "freshColor309",
+							"type": "text"
+						},
+						{
+							"key": "cardColor",
+							"value": "frshCardColor9",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3500/template/modify?id=083576fb-115e-4207-a505-0af5d31d0ec6",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"template",
+						"modify"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "083576fb-115e-4207-a505-0af5d31d0ec6"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Modify CMS template - Production",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "templateName",
+							"value": "abhi template110",
+							"type": "text"
+						},
+						{
+							"key": "summary",
+							"value": "abhi summary110",
+							"type": "text"
+						},
+						{
+							"key": "backGroundColor",
+							"value": "#f26522b",
+							"type": "text"
+						},
+						{
+							"key": "hiddenText",
+							"value": "award hai idhar",
+							"type": "text"
+						},
+						{
+							"key": "cardFrontText",
+							"value": "open",
+							"type": "text"
+						},
+						{
+							"key": "fontSize",
+							"value": "12",
+							"type": "text"
+						},
+						{
+							"key": "fontFamily",
+							"value": "times new roman",
+							"type": "text"
+						},
+						{
+							"key": "backgroundPicture",
+							"type": "file",
+							"src": "/Users/abhinitrai/Documents/Priyanka.jpeg"
+						},
+						{
+							"key": "backgroundPictureBack",
+							"type": "file",
+							"src": "/Users/abhinitrai/Documents/suspect_image.jpeg"
+						},
+						{
+							"key": "cardTextColor",
+							"value": "color102",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://3.111.55.132:3500/template/modify?id=0148a568-3898-457d-88b4-a9ba4e781bda",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"template",
+						"modify"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "0148a568-3898-457d-88b4-a9ba4e781bda"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add CMS template - Production",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "64147585-cd67-49",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "templateName",
+							"value": "fresh template99",
+							"type": "text"
+						},
+						{
+							"key": "summary",
+							"value": "fresh summary99",
+							"type": "text"
+						},
+						{
+							"key": "backGroundColor",
+							"value": "#f26522b",
+							"type": "text"
+						},
+						{
+							"key": "hiddenText",
+							"value": "fresh award99",
+							"type": "text"
+						},
+						{
+							"key": "cardFrontText",
+							"value": "fresh front text99",
+							"type": "text"
+						},
+						{
+							"key": "fontSize",
+							"value": "12",
+							"type": "text"
+						},
+						{
+							"key": "fontFamily",
+							"value": "fresh font99",
+							"type": "text"
+						},
+						{
+							"key": "cardTextColor",
+							"value": "color99",
+							"type": "text"
+						},
+						{
+							"key": "cardColor",
+							"value": "red",
+							"type": "text"
+						},
+						{
+							"key": "backgroundPicture",
+							"type": "file",
+							"src": "/Users/abhinitrai/Downloads/brain_tumor_dataset/yes/Y9.jpg"
+						},
+						{
+							"key": "backgroundPictureBack",
+							"type": "file",
+							"src": "/Users/abhinitrai/Downloads/brain_tumor_dataset/yes/Y10.jpg"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://3.111.55.132:3500/template/add",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"template",
+						"add"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch Device IP - prod",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://3.111.55.132:3500/fetchip",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"fetchip"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch a specific template - development",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://localhost:3500/template/fetch?id=737416fe-1b4c-4b7a-94c9-cc7036565ca7",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"template",
+						"fetch"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "737416fe-1b4c-4b7a-94c9-cc7036565ca7"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch a specific template - Production",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://3.111.55.132:3500/template/fetch?id=adb2072e-557f-456d-8b8b-76b27273aeff",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"template",
+						"fetch"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "adb2072e-557f-456d-8b8b-76b27273aeff"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete a template - dev",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://localhost:3500/template/delete?id=737416fe-1b4c-4b7a-94c9-cc7036565ca7",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"template",
+						"delete"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "737416fe-1b4c-4b7a-94c9-cc7036565ca7"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete a template - prod",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://3.111.55.132:3500/template/delete?id=0578552f-209f-4a24-9429-e357b5161b90",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"template",
+						"delete"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "0578552f-209f-4a24-9429-e357b5161b90"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout obsolete sessions - Development",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3500/logoutSession",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"logoutSession"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Logout obsolete sessions - Production",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://3.111.55.132:3500/logoutSession",
+					"protocol": "http",
+					"host": [
+						"3",
+						"111",
+						"55",
+						"132"
+					],
+					"port": "3500",
+					"path": [
+						"logoutSession"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Each Game Count - Dev",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "45bf0828-ee21-4b",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": []
+				},
+				"url": {
+					"raw": "http://localhost:3500/each_game_count?fromDate=01-03-2024T00:00:00&toDate=17-11-2024T23:59:59",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"each_game_count"
+					],
+					"query": [
+						{
+							"key": "fromDate",
+							"value": "01-03-2024T00:00:00"
+						},
+						{
+							"key": "toDate",
+							"value": "17-11-2024T23:59:59"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Password MIS user - dev",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "3b195073-fce3-41",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "email_ID",
+							"value": "mgriffin@familyguy.org",
+							"type": "text"
+						},
+						{
+							"key": "PASSWORD",
+							"value": "Mgriffin@123",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3500/updatePassword",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"updatePassword"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Client Dev",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "Client_Name",
+							"value": "FRIENDS",
+							"type": "text"
+						},
+						{
+							"key": "Client_email",
+							"value": "dude@friends.com",
+							"type": "text"
+						},
+						{
+							"key": "Client_GST",
+							"value": "27FRIENDS",
+							"type": "text"
+						},
+						{
+							"key": "Client_Address",
+							"value": "New York, USA",
+							"type": "text"
+						},
+						{
+							"key": "contact",
+							"value": "10002003",
+							"type": "text"
+						},
+						{
+							"key": "Client_Category",
+							"value": "Standard",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3500/addClient",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"addClient"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch All games",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "e763aa77-0674-40",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3500/allGames",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"allGames"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch All Clients Dev",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3500/allClients",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"allClients"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Purchase Games -Dev",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "d2f2782e-7065-44",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "client_id",
+							"value": "4",
+							"type": "text"
+						},
+						{
+							"key": "games_purchased",
+							"value": "\"Shoot the target, Reveal the card\"",
+							"type": "text"
+						},
+						{
+							"key": "Pack_valid_till",
+							"value": "31-03-2025T23:59:59",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "http://localhost:3500/purchaseGames",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"purchaseGames"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Games purchased by client",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "session_id",
+						"value": "d2f2782e-7065-44",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3500/clientpurchasedGames?client_id=4",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3500",
+					"path": [
+						"clientpurchasedGames"
+					],
+					"query": [
+						{
+							"key": "client_id",
+							"value": "4"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

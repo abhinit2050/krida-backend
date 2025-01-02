@@ -244,47 +244,110 @@ misUserRouter.patch("/updatePassword",authMisUser, async (req, res)=>{
 
 misUserRouter.post("/purchaseGames", authMisUser, async(req, res)=>{
 
-  try{
-    const {client_id, games_purchased, Pack_valid_till} = req.body;
+  try {
+    let { purchases, Pack_valid_till } = req.body;
     const purchase_date = formatDate(new Date());
-  
-    const querytoPurchaseGames = `INSERT INTO Client_purchases_record (client_id, games_purchased, Last_Purchase_Date, Pack_valid_till) 
-                                  VALUES(?,?,?,?)`; 
+
+    // Parse purchases string into an array if necessary
+    if (typeof purchases === 'string') {
+        try {
+            purchases = JSON.parse(purchases);
+        } catch (err) {
+            return res.status(400).send("Invalid purchases array format: " + err.message);
+        }
+    }
+
+    // Validate purchases array
+    if (!Array.isArray(purchases) || purchases.length === 0) {
+        return res.status(400).send("Invalid purchases array.");
+    }
+
+     // Clean Pack_valid_till from extra quotes
+     if (typeof Pack_valid_till === 'string') {
+      Pack_valid_till = Pack_valid_till.trim().replace(/['"]+/g, '');
+      }
+
+    // Convert Pack_valid_till to Date object
+    let packValidTillDateTime = `${Pack_valid_till}T23:59:59`;
+    console.log(packValidTillDateTime);
     
-    db.run(querytoPurchaseGames,[client_id, games_purchased, purchase_date, Pack_valid_till],(err, result)=>{
-          if(err){
-            res.send("Error adding record "+err);
-          }
-        res.json({
-          message:"Games purchase successful!"
-        })
-    })
-  }catch(err){
-    res.status(500).send("Something went wrong", err);
-  }
+    let packValidTillDate = new Date(packValidTillDateTime);
+
+    if (isNaN(packValidTillDate.getTime())) {
+        return res.status(400).send("Invalid Pack_valid_till date format.");
+    }
+
+    const querytoPurchaseGames = `
+        INSERT INTO Client_purchases_record (client_id, Game_purchased_id, Last_Purchase_Date, Pack_valid_till) 
+        VALUES (?, ?, ?, ?)`;
+
+    db.serialize(() => {
+        db.run('BEGIN TRANSACTION');
+
+        purchases.forEach(({ client_id, game_id }) => {
+            db.run(querytoPurchaseGames, [client_id, game_id, purchase_date, packValidTillDate.toISOString()], (err) => {
+                if (err) {
+                    console.error("Error adding record: ", err);
+                    db.run('ROLLBACK');
+                    return res.status(500).send("Error adding records: " + err.message);
+                }
+            });
+        });
+
+        db.run('COMMIT', (err) => {
+            if (err) {
+                console.error("Transaction commit failed: ", err);
+                return res.status(500).send("Transaction commit failed: " + err.message);
+            }
+            res.json({
+                message: "Games purchase successful!"
+            });
+        });
+    });
+
+} catch (err) {
+    console.error("Unexpected error: ", err);
+    res.status(500).send("Something went wrong: " + err.message);
+}
+
+
   
 });
 
 misUserRouter.get("/clientpurchasedGames", authMisUser, async (req, res)=>{
 
-  try{
+  try {
     const client_id = req.query.client_id;
 
-    const querytoFetchClientPurchasedGames = `SELECT Games_purchased from Client_purchases_record WHERE Client_Id = ${client_id}`;
-  
-    db.all(querytoFetchClientPurchasedGames, (err, result)=>{
-          if(err){
-            res.send("Error fetching records! ", err);
-          }
+    // Validate client_id to prevent SQL injection
+    if (!client_id) {
+        return res.status(400).json({ message: "client_id is required" });
+    }
 
-          res.json({
-            message:"List fetched successfully!",
+    // Use parameterized query to prevent SQL injection
+    const queryToFetchClientPurchasedGames = `
+        SELECT g.id, g.Name 
+        FROM Client_purchases_record cpr
+        JOIN Games g ON cpr.Game_purchased_id = g.id
+        WHERE cpr.Client_Id = ?;
+    `;
+
+    db.all(queryToFetchClientPurchasedGames, [client_id], (err, result) => {
+        if (err) {
+            console.error("Error fetching records:", err);
+            return res.status(500).json({ message: "Error fetching records", error: err.message });
+        }
+
+        res.json({
+            message: "List fetched successfully!",
             data: result
-          })
-    })
-  }catch(err){
-    res.status(500).send("Something went wrong ", err);
-  }
+        });
+    });
+} catch (err) {
+    console.error("Unexpected error:", err);
+    res.status(500).json({ message: "Something went wrong", error: err.message });
+}
+
   
 })
 
