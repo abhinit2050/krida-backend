@@ -92,6 +92,7 @@ misUserRouter.post("/login", (req, res) => {
                 if(result.default_Pwd == true){
                   return res.status(210).json({
                     message:"Default password detected",
+                    email_ID:email_ID,
                     temp_sessionid: temp_sessionid
                   })
                 }
