@@ -72,7 +72,7 @@ db.serialize(() => {
   //create a table to record player session history details
   db.run(
     `CREATE TABLE IF NOT EXISTS PLAYER_HISTORY (PLAYERID TEXT(45), SESSION_ID CHAR(16), EMAIL_ID TEXT, contact INTEGER, CLIENT_IP TEXT, 
-    LOGIN_TIME_STAMP TIME, LOGOUT_TIME_STAMP TIME, Primary_Registration_Date TIME, Secondary_Registration_Date Time, ACTIVE_DURATION INTEGER, 
+    LOGIN_TIME_STAMP TIME, Game_start_time TIME, LOGOUT_TIME_STAMP TIME, Primary_Registration_Date TIME, Secondary_Registration_Date Time, ACTIVE_DURATION INTEGER, 
     GAME_PLAYED TEXT(50), PLATFORM TEXT(45));`
   );
 

@@ -52,7 +52,7 @@ playerRouter.get("/playerdupcheck",(req, res)=>{
 
 //login API for player- Client IP 
 playerRouter.post("/loginPlayerip", (req, res) => {
-const { platform, GAME_PLAYED, CLIENT_IP } = req.body;
+const { platform, CLIENT_IP } = req.body;
 
 let selected_player_details;
 
@@ -85,8 +85,8 @@ db.get(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
 
     //Add a record to PLAYER_SESSION_DETAILS
     const insertQueryforPlayerSession = `INSERT INTO PLAYER_SESSION_DETAILS 
-        (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, GAME_PLAYED, PLATFORM ) 
-        VALUES (?, ?, ?, ?, ?,?, ?, ?)`;
+        (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, PLATFORM ) 
+        VALUES (?, ?, ?, ?, ?,?, ?)`;
 
     db.run(
         insertQueryforPlayerSession,
@@ -97,7 +97,6 @@ db.get(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
         selected_player_details.CLIENT_IP,
         sessionId_player,
         logintime2_player,
-        GAME_PLAYED,
         platform,
         ],
         (err_insert) => {
@@ -146,7 +145,7 @@ db.get(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
             sessionId_player,
             logintime2_player,
             player_primary_reg_date,
-            GAME_PLAYED,
+            "NA",
             platform,
             ],
             (err_history) => {
@@ -177,7 +176,7 @@ db.get(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
   
 //login API for player - credentials
 playerRouter.post("/loginPlayerCredentials", (req, res) => {
-const { contact, platform, GAME_PLAYED } = req.body;
+const { contact, platform } = req.body;
 
 let selected_player_details;
 
@@ -208,8 +207,8 @@ db.get(queryToFetchPlayer, [contact], (err, result) => {
 
     //Add a record to PLAYER_SESSION_DETAILS
     const insertQueryforPlayerSession = `INSERT INTO PLAYER_SESSION_DETAILS 
-        (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, GAME_PLAYED, PLATFORM ) 
-        VALUES (?, ?, ?, ?, ?,?, ?, ?)`;
+        (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, PLATFORM ) 
+        VALUES (?, ?, ?, ?, ?,?, ?)`;
 
     db.run(
         insertQueryforPlayerSession,
@@ -220,7 +219,6 @@ db.get(queryToFetchPlayer, [contact], (err, result) => {
         selected_player_details.CLIENT_IP,
         sessionId_player,
         logintime2_player,
-        GAME_PLAYED,
         platform,
         ],
         (err_insert) => {
@@ -271,7 +269,7 @@ db.get(queryToFetchPlayer, [contact], (err, result) => {
             logintime2_player,
             player_primary_reg_date,
             selected_player_details.Secondary_Registration_Date,
-            GAME_PLAYED,
+            "NA",
             platform,
             ],
             (err_history) => {
@@ -402,5 +400,84 @@ playerRouter.post("/updatePlayer",(req,res)=>{
     })
 })
 
+
+const fetchPlayerdetails = async (_playerid) => {
+    const queryToFetchPlayerDetails = `SELECT * FROM PLAYERS WHERE id=${_playerid}`;
+
+    return new Promise((resolve, reject) => {
+        db.get(queryToFetchPlayerDetails, (err, result) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve(result);
+        });
+    });
+};
+
+
+//detecting when a player starts playing a game and recording it
+playerRouter.post("/gameStarted", (req, res)=>{
+
+    //capture player's id/email/contact/ip and game_played from the request body
+    const {CLIENT_IP, contact, EMAIL_ID, player_id, GAME_PLAYED} = req.body;
+    let returnedPlayer;
     
-module.exports = playerRouter;
+    //find player details 
+    fetchPlayerdetails(player_id).then((res)=>{
+        returnedPlayer = res;
+    })
+
+
+    if(returnedPlayer){
+        console.log("ret pl", returnedPlayer);
+    }
+    
+
+    //find out the session details of the user through user email/id/ip from Player_session_details table
+    const queryToFindPlayerSession = `SELECT * FROM PLAYER_SESSION_DETAILS WHERE PLAYERID = ${player_id}`;
+    const game_start_time = formatDate(new Date());
+
+    db.get(queryToFindPlayerSession, (err, resultRecord)=>{
+        if(err){
+            return res.status(500).send("Internal Server Error");
+        } 
+            
+        const detectedSession = resultRecord;
+        
+        //along with the details obtained from previous step, append game_played and add a record to player_history table
+   const queryToaddPlayerHistory = `INSERT INTO PLAYER_HISTORY 
+    (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, Game_start_time, 
+        Primary_Registration_Date, Secondary_Registration_Date, 
+        GAME_PLAYED, PLATFORM ) 
+        VALUES (?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?)`
+
+    db.run(
+        queryToaddPlayerHistory,
+        [
+            detectedSession.PLAYERID,
+            detectedSession.EMAIL_ID,
+            detectedSession.contact,
+            detectedSession.CLIENT_IP,
+            detectedSession.SESSION_ID,
+            detectedSession.LOGIN_TIME_STAMP,
+            game_start_time,
+            returnedPlayer.Primary_Registration_Date,
+            returnedPlayer.Secondary_Registration_Date,
+            GAME_PLAYED,
+            detectedSession.PLATFORM,   
+        ],
+        (err_history) => {
+        if (err_history) {
+            console.error("Error inserting in history table:", err_history);
+            res.status(500).json({ error: "Internal server error" });
+            return;
+        }
+        res.status(201).send("Record added to player history");
+    })
+    
+    
+})
+})
+
+    
+module.exports = playerRouter
