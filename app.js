@@ -59,7 +59,7 @@ db.serialize(() => {
   //Create a table for Players
   db.run(
     `CREATE TABLE IF NOT EXISTS PLAYERS (id INTEGER PRIMARY KEY, NAME TEXT, EMAIL_ID TEXT UNIQUE, 
-      contact INTEGER UNIQUE, CLIENT_IP TEXT UNIQUE, Primary_Registration_Date Time, Secondary_Registration_Date Time);`
+      contact INTEGER UNIQUE, CLIENT_IP TEXT UNIQUE, Primary_Registration_Date Time, Secondary_Registration_Date Time, POINTS INTEGER);`
   );
 
   //create a table to record player session details

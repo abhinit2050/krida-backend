@@ -297,6 +297,10 @@ db.get(queryToFetchPlayer, [contact], (err, result) => {
     }
 });
 });
+
+playerRouter.post("/loginPlayeroAuth",(req,res)=>{
+
+})
   
 //logout API for player
 playerRouter.post("/logoutPlayer", (req, res) => {
@@ -353,6 +357,7 @@ db.run(`DELETE FROM PLAYER_SESSION_DETAILS WHERE SESSION_ID = ?`, [SESSION_ID], 
 playerRouter.post("/addPlayer", (req, res) => {
     const { NAME, EMAIL_ID, contact, CLIENT_IP, platform, GAME_PLAYED } = req.body;
 
+    console.log("mob num", contact);
     console.log("Entered add Player function");
 
     const tempDate = new Date();
@@ -365,7 +370,7 @@ playerRouter.post("/addPlayer", (req, res) => {
     function (err) {
         if (err) {
         console.error(err.message);
-        return res.status(500).send("Internal Server Error");
+        return res.status(500).send(err.message);
         }
         return res.status(201).send("New player added successfully!");
     }
@@ -479,5 +484,69 @@ playerRouter.post("/gameStarted", (req, res)=>{
 })
 })
 
+//add points to palyer score
+playerRouter.post("/addPoints",(req, res)=>{
+    const {player_id, points} = req.body;
+
+    let returnedPlayer;
+    let updatedScore;
+
+    //find player details 
+    fetchPlayerdetails(player_id).then((resp)=>{
+        
+        returnedPlayer = resp;
+       
+        if(returnedPlayer){
+
+            if(returnedPlayer.POINTS){
+                
+                updatedScore = Number(returnedPlayer.POINTS) + Number(points);
+            } else {
+                
+                updatedScore = points
+            }
+            console.log("inside updated score", updatedScore);
+
+            const querytoAddPoints = `UPDATE PLAYERS SET POINTS = ${updatedScore} WHERE id = ${player_id}`;
+
+            db.run(querytoAddPoints, (err_points)=>{
+        if(err_points){
+            console.error("Error adding points to player score. ",err_points);
+            res.status(500).json({ error: "Internal server error" });
+                return;
+        }
+
+        res.status(201).send("Points added to player score");
+        
+    })
+        }
+    });
+
+   
+
+    
+})
+
+
+//fetch player score
+playerRouter.get("/fetchPlayerScore", (req, res)=>{
+    const {player_id} = req.query;
+    const queryToFetchPlayerScore = `SELECT id, NAME, POINTS from PLAYERS WHERE id=${player_id}`;
+
+    db.get(queryToFetchPlayerScore, (err, result)=>{
+        if(err){
+            console.error("Error fetching player score.",err)
+        }
+
+        console.log(result);
+        const data = {
+            playerId:result.id,
+            playerName:result.NAME,
+            score:result.POINTS
+        }
+
+        res.status(202).send(result);
+    })
+})
     
 module.exports = playerRouter
