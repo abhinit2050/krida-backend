@@ -1,6 +1,6 @@
 const express = require("express");
 const playerRouter = express.Router();
-
+const {otpGenerate, otpVerify} = require("../utils/mobileOTPservice");
 const db = require("../config/database");
 const { v4: uuidv4 } = require("uuid");
 const formatDate = require("../utils/formatDate");
@@ -299,7 +299,134 @@ db.get(queryToFetchPlayer, [contact], (err, result) => {
 });
 
 playerRouter.post("/loginPlayeroAuth",(req,res)=>{
+    const { EMAIL_ID, platform } = req.body;
 
+    let selected_player_details;
+    
+    //query to detect if the contact exists
+    const queryToFetchPlayer = `SELECT * from PLAYERS WHERE EMAIL_ID = ?`;
+    
+    db.get(queryToFetchPlayer, [EMAIL_ID], (err, result) => {
+        if (err) {
+        console.error("Error checking credentials:", err);
+        res.status(500).json({ error: "Internal server error" });
+        return;
+        }
+    
+        if (result) {
+        //user found
+        selected_player_details = result;
+        console.log(`Match found - ${result.EMAIL_ID}`);
+    
+        // Generate a UUID (Universally Unique Identifier)
+        const uuid = uuidv4();
+    
+        // Extract the first 16 characters as your session ID for the player
+        const sessionId_player = uuid.substr(0, 16);
+    
+        //record current time and use it as timestamp for player login
+        const player_login_time = new Date();
+        const logintime2_player = formatDate(player_login_time);
+    
+        //Add a record to PLAYER_SESSION_DETAILS
+        const insertQueryforPlayerSession = `INSERT INTO PLAYER_SESSION_DETAILS 
+            (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, PLATFORM ) 
+            VALUES (?, ?, ?, ?, ?,?, ?)`;
+    
+        db.run(
+            insertQueryforPlayerSession,
+            [
+            selected_player_details.id,
+            EMAIL_ID,
+            selected_player_details.contact,
+            selected_player_details.CLIENT_IP,
+            sessionId_player,
+            logintime2_player,
+            platform,
+            ],
+            (err_insert) => {
+            if (err_insert) {
+                console.error("Error inserting session record:", err_insert);
+                res.status(500).json({ error: "Internal server error" });
+                return;
+            }
+            }
+        );
+    
+        //Now adding the same record in Player History Table
+    
+        let player_primary_reg_date;
+    
+        const queryTofetchPrimaryRegDate = `SELECT Primary_Registration_Date from PLAYERS WHERE id = ?`;
+    
+        db.get(
+            queryTofetchPrimaryRegDate,
+            [selected_player_details.id],
+            (errRegDate, resRegDate) => {
+            if (errRegDate) {
+                console.error(
+                "Error fetching primary registration date:",
+                errRegDate
+                );
+                res.status(500).json({ error: "Internal server error" });
+                return;
+            }
+            let insertQueryforPlayerHistory;
+            //gather primary registration date
+            player_primary_reg_date = resRegDate.Primary_Registration_Date;
+            
+            //preparing query for adding record to Player History table
+        insertQueryforPlayerHistory = `INSERT INTO PLAYER_HISTORY 
+        (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, Primary_Registration_Date, Secondary_Registration_Date, 
+            GAME_PLAYED, PLATFORM ) 
+        VALUES (?, ?, ?, ?, ?,?, ?, ?, ?, ?)`
+    
+            db.run(
+                insertQueryforPlayerHistory,
+                [
+                selected_player_details.id,
+                selected_player_details.EMAIL_ID,
+                selected_player_details.contact,
+                selected_player_details.CLIENT_IP,
+                sessionId_player,
+                logintime2_player,
+                player_primary_reg_date,
+                selected_player_details.Secondary_Registration_Date,
+                "NA",
+                platform,
+                ],
+                (err_history) => {
+                if (err_history) {
+                    console.error("Error inserting in history table:", err_history);
+                    res.status(500).json({ error: "Internal server error" });
+                    return;
+                }
+    
+                // Construct the response object with user details and session ID
+                const playerDetails = {
+                    id: selected_player_details.id,
+                    email_ID: selected_player_details.EMAIL_ID,
+                    contact: selected_player_details.contact,
+                    reg_date: selected_player_details.Primary_Registration_Date,
+                    name: selected_player_details.NAME,
+                    session_ID: sessionId_player,
+                };
+    
+                res.status(200).json(playerDetails);
+                }
+            );
+            }
+        );
+        }
+    });
+});
+
+playerRouter.post("/verifyPlayerOtp",(req,res)=>{
+    const {contact, otp} = req.body;
+
+    if(otp="123456"){
+        res.status(202).send("OTP verification successful");
+    }
 })
   
 //logout API for player
