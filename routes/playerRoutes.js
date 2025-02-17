@@ -22,13 +22,69 @@ playerRouter.get('/fetchip', async (req, res) => {
     
     });
       
-//check for duplicity of a player
+//check for duplicity of a player based on IP address
 playerRouter.get("/playerdupcheck",(req, res)=>{
 
     const {CLIENT_IP} = req.query;
     
     const queryToFetchDuplicatePlayers = `SELECT COUNT(*) FROM PLAYERS WHERE CLIENT_IP=?`
     const params = [CLIENT_IP];
+
+
+    db.get(queryToFetchDuplicatePlayers, params, (err, resultDuplicate)=>{
+    if (err) {
+        res.status(500).send("Error " + err);
+        return;
+    }
+    if(resultDuplicate['COUNT(*)']>0){
+        console.log("res dupT", resultDuplicate['COUNT(*)']);
+        res.status(201).send(true);
+    } else {
+        console.log("res dup", resultDuplicate);
+        
+        console.log("res dupF", resultDuplicate['COUNT(*)']);
+        res.status(201).send(false);
+    }
+    
+    })
+
+});
+
+//check duplicity of a player based on email
+playerRouter.get("/playerdupcheckoAuth",(req, res)=>{
+
+    const {EMAIL_ID} = req.query;
+    
+    const queryToFetchDuplicatePlayers = `SELECT COUNT(*) FROM PLAYERS WHERE EMAIL_ID=?`
+    const params = [EMAIL_ID];
+
+
+    db.get(queryToFetchDuplicatePlayers, params, (err, resultDuplicate)=>{
+    if (err) {
+        res.status(500).send("Error " + err);
+        return;
+    }
+    if(resultDuplicate['COUNT(*)']>0){
+        console.log("res dupT", resultDuplicate['COUNT(*)']);
+        res.status(201).send(true);
+    } else {
+        console.log("res dup", resultDuplicate);
+        
+        console.log("res dupF", resultDuplicate['COUNT(*)']);
+        res.status(201).send(false);
+    }
+    
+    })
+
+});
+
+//check duplicity of a player based on mobile number
+playerRouter.get("/playerdupcheckContact",(req, res)=>{
+
+    const {contact} = req.query;
+    
+    const queryToFetchDuplicatePlayers = `SELECT COUNT(*) FROM PLAYERS WHERE contact=?`
+    const params = [contact];
 
 
     db.get(queryToFetchDuplicatePlayers, params, (err, resultDuplicate)=>{
@@ -299,6 +355,7 @@ db.get(queryToFetchPlayer, [contact], (err, result) => {
 });
 
 playerRouter.post("/loginPlayeroAuth",(req,res)=>{
+
     const { EMAIL_ID, platform } = req.body;
 
     let selected_player_details;
@@ -480,12 +537,12 @@ db.run(`DELETE FROM PLAYER_SESSION_DETAILS WHERE SESSION_ID = ?`, [SESSION_ID], 
 });
 });
     
-//Create a new Player
+//Create a new Player 
 playerRouter.post("/addPlayer", (req, res) => {
-    const { NAME, EMAIL_ID, contact, CLIENT_IP, platform, GAME_PLAYED } = req.body;
+    const { NAME, EMAIL_ID, contact, CLIENT_IP } = req.body;
 
-    console.log("mob num", contact);
-    console.log("Entered add Player function");
+    console.log("client ip", CLIENT_IP);
+    console.log("Entered add Player function client ip");
 
     const tempDate = new Date();
     const primary_reg_date_player = formatDate(tempDate);
@@ -494,6 +551,54 @@ playerRouter.post("/addPlayer", (req, res) => {
     db.run(
     `INSERT INTO PLAYERS ( CLIENT_IP, Primary_Registration_Date, contact, NAME, EMAIL_ID) VALUES (?, ?, ?, ?, ?)`,
     [CLIENT_IP, primary_reg_date_player, contact, NAME, EMAIL_ID],
+    function (err) {
+        if (err) {
+        console.error(err.message);
+        return res.status(500).send(err.message);
+        }
+        return res.status(201).send("New player added successfully!");
+    }
+    );
+});
+
+//Create a new Player based on oAuth email
+playerRouter.post("/addPlayeroAuth", (req, res) => {
+    const { NAME, EMAIL_ID, CLIENT_IP } = req.body;
+
+   
+    console.log("Entered add Player function oAuth");
+
+    const tempDate = new Date();
+    const primary_reg_date_player = formatDate(tempDate);
+
+    // Insert the new player into the database
+    db.run(
+    `INSERT INTO PLAYERS ( CLIENT_IP, Primary_Registration_Date, NAME, EMAIL_ID) VALUES ( ?, ?, ?, ?)`,
+    [CLIENT_IP, primary_reg_date_player, NAME, EMAIL_ID],
+    function (err) {
+        if (err) {
+        console.error(err.message);
+        return res.status(500).send(err.message);
+        }
+        return res.status(201).send("New player added successfully!");
+    }
+    );
+});
+
+//Create a new Player based on contact
+playerRouter.post("/addPlayerContact", (req, res) => {
+    const { NAME, contact, CLIENT_IP } = req.body;
+
+   
+    console.log("Entered add Player function contact");
+
+    const tempDate = new Date();
+    const primary_reg_date_player = formatDate(tempDate);
+
+    // Insert the new player into the database
+    db.run(
+    `INSERT INTO PLAYERS ( CLIENT_IP, Primary_Registration_Date, NAME, contact) VALUES ( ?, ?, ?, ?)`,
+    [CLIENT_IP, primary_reg_date_player, NAME, contact],
     function (err) {
         if (err) {
         console.error(err.message);
