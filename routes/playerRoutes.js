@@ -1,6 +1,6 @@
 const express = require("express");
 const playerRouter = express.Router();
-const {otpGenerate, otpVerify} = require("../utils/mobileOTPservice");
+// const {otpGenerate, otpVerify} = require("../utils/mobileOTPservice");
 const db = require("../config/database");
 const { v4: uuidv4 } = require("uuid");
 const formatDate = require("../utils/formatDate");
@@ -9,11 +9,15 @@ const moment = require("moment");
 
 //GET Ip address of the player
 playerRouter.get('/fetchip', async (req, res) => {
+
+    https://krida-x.com/fetchIp
   
     try{
       const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-      let clientIp_final = clientIp.split('::ffff:')[1];
-      res.status(201).send(clientIp_final);
+    //   let clientIp_final = clientIp.split('::ffff:')[1];
+    let clientIp_final = clientIp.includes('::ffff:') ? clientIp.split('::ffff:')[1] : clientIp;  
+    console.log("cip",clientIp_final);
+      res.status(200).send(clientIp_final);
     }
     
     catch (error){
@@ -21,6 +25,22 @@ playerRouter.get('/fetchip', async (req, res) => {
     }
     
     });
+
+//send OTP to the requested mobile number
+playerRouter.get('/sendOTP', async(req, res)=>{
+    const{contact} = req.query;
+
+    try {
+        const response = await axios.post('http://localhost:5001/send-otp', {
+            phoneNumber: contact
+        });
+        console.log("otp", response.data);
+        res.json(response.data);
+    } catch (error) {
+        console.log("errOTP",error);
+        res.status(500).json({ error: 'Error calling OTP service' });
+    }
+})
       
 //check for duplicity of a player based on IP address
 playerRouter.get("/playerdupcheck",(req, res)=>{
@@ -246,10 +266,16 @@ db.get(queryToFetchPlayer, [contact], (err, result) => {
     return;
     }
 
+
     if (result) {
+
     //user found
     selected_player_details = result;
     console.log(`Match found - ${result.contact}`);
+
+    //code for otp verification with mobile number and OTP
+
+
 
     // Generate a UUID (Universally Unique Identifier)
     const uuid = uuidv4();
@@ -350,6 +376,8 @@ db.get(queryToFetchPlayer, [contact], (err, result) => {
         );
         }
     );
+    } else {
+        res.status(200).json({errorMsg:"No player found with provided contact number"})
     }
 });
 });
@@ -563,7 +591,7 @@ playerRouter.post("/addPlayer", (req, res) => {
 
 //Create a new Player based on oAuth email
 playerRouter.post("/addPlayeroAuth", (req, res) => {
-    const { NAME, EMAIL_ID, CLIENT_IP } = req.body;
+    const { NAME, EMAIL_ID } = req.body;
 
    
     console.log("Entered add Player function oAuth");
@@ -573,8 +601,8 @@ playerRouter.post("/addPlayeroAuth", (req, res) => {
 
     // Insert the new player into the database
     db.run(
-    `INSERT INTO PLAYERS ( CLIENT_IP, Primary_Registration_Date, NAME, EMAIL_ID) VALUES ( ?, ?, ?, ?)`,
-    [CLIENT_IP, primary_reg_date_player, NAME, EMAIL_ID],
+    `INSERT INTO PLAYERS (  Primary_Registration_Date, NAME, EMAIL_ID) VALUES ( ?, ?, ?)`,
+    [ primary_reg_date_player, NAME, EMAIL_ID],
     function (err) {
         if (err) {
         console.error(err.message);
@@ -587,7 +615,7 @@ playerRouter.post("/addPlayeroAuth", (req, res) => {
 
 //Create a new Player based on contact
 playerRouter.post("/addPlayerContact", (req, res) => {
-    const { NAME, contact, CLIENT_IP } = req.body;
+    const { NAME, contact } = req.body;
 
    
     console.log("Entered add Player function contact");
@@ -597,8 +625,8 @@ playerRouter.post("/addPlayerContact", (req, res) => {
 
     // Insert the new player into the database
     db.run(
-    `INSERT INTO PLAYERS ( CLIENT_IP, Primary_Registration_Date, NAME, contact) VALUES ( ?, ?, ?, ?)`,
-    [CLIENT_IP, primary_reg_date_player, NAME, contact],
+    `INSERT INTO PLAYERS (  Primary_Registration_Date, NAME, contact) VALUES (  ?, ?, ?)`,
+    [ primary_reg_date_player, NAME, contact],
     function (err) {
         if (err) {
         console.error(err.message);
