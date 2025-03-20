@@ -148,8 +148,10 @@ let toDate = req.query.toDate;
 
 
 const queryToFetchNewPlayers =
-`SELECT DISTINCT * FROM PLAYER_HISTORY WHERE LOGIN_TIME_STAMP BETWEEN ? AND ? 
-AND Primary_Registration_Date BETWEEN ? AND ? GROUP BY PLAYERID;`;
+`SELECT DISTINCT * FROM PLAYER_HISTORY WHERE Primary_Registration_Date BETWEEN ? AND ? GROUP BY PLAYERID;`;
+
+//`SELECT DISTINCT * FROM PLAYER_HISTORY WHERE LOGIN_TIME_STAMP BETWEEN ? AND ? 
+//AND Primary_Registration_Date BETWEEN ? AND ? GROUP BY PLAYERID;`;
 
 // Execute the query with the fromDate and toDate as parameters
 db.all(queryToFetchNewPlayers, [fromDate, toDate, fromDate, toDate], (errNew, rowNew) => {
