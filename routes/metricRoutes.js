@@ -120,6 +120,35 @@ db.get(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
     res.json(REALTIME_CARD_DATA);
 });
 });
+
+//fetch total duration of game played between 2 dates (both inclusive)
+metricRouter.get("/total_time_played", authMisUser, (req, res) => {
+    // Extract the from date and to date from the query parameters
+    const fromDate = req.query.fromDate;
+    const toDate = req.query.toDate;
+    
+    // Query to get the count of players registered between the from date and to date
+    const queryToFetchTotalTimePlayed =
+        "SELECT SUM(ACTIVE_DURATION) AS total_duration FROM PLAYER_HISTORY WHERE GAME_PLAYED != 'NA' AND LOGIN_TIME_STAMP BETWEEN ? AND ?";
+    
+    // Execute the query with the fromDate and toDate as parameters
+    db.get(queryToFetchTotalTimePlayed, [fromDate, toDate], (err, row) => {
+        if (err) {
+        return res.status(500).json({ error: err.message });
+        }
+        //generate result
+        const REALTIME_CARD_DATA = [
+        {
+            metric: "Total Time Played",
+            metricValue: row,
+            percentage: null,
+        },
+        ];
+    
+        // Return the count of players registered between the from date and to date
+        res.json(REALTIME_CARD_DATA);
+    });
+    });
   
 //fetch unique players who played between 2 dates (both inclusive)
 metricRouter.get("/unique_player_count", authMisUser, (req, res) => {
