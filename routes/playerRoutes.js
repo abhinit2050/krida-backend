@@ -807,6 +807,24 @@ playerRouter.get("/fetchPlayerScore", (req, res)=>{
 
         res.status(202).send(result);
     })
+});
+
+//update Active duration of one game for a player
+playerRouter.patch("/game_duration", (req,res)=>{
+    const {sessionId, duration, GAME_PLAYED} = req.query;
+
+    console.log("queryParams", sessionId, duration);
+
+    const queryToUpdateDuration = `UPDATE PLAYER_HISTORY SET ACTIVE_DURATION =? WHERE SESSION_ID =? AND GAME_PLAYED=?`;
+
+    db.run(queryToUpdateDuration, [duration, sessionId, GAME_PLAYED], (err,resultDuration)=>{
+        if(err){
+            console.error('Error updating duration:', err);
+    res.status(500).json({ success: false, message: 'Database error' });
+        } else {
+            res.status(200).json({ success: true, message: 'Duration updated successfully' });
+        }
+    })
 })
     
 module.exports = playerRouter

@@ -74,6 +74,7 @@ db.all(
     }
 );
 });
+
   
 //fetch count of total number of players
 metricRouter.get("/total_player_count", authMisUser, (req, res) => {
@@ -315,5 +316,6 @@ db.all(queryToFetchEachGameCount,[fromDate, toDate],(errGame,rowsGame)=>{
     res.status(202).json(rowsGame);
 })
 })
+
 
 module.exports = metricRouter;
