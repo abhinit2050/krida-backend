@@ -12,14 +12,14 @@ const authMisUser = require("../middlewares/authMW");
 //fetch data of all active players
 metricRouter.get("/fetchActivePlayers", authMisUser, (req, res) => {
 
-    let active_player_count=0;
+    let active_player_count;
     let todayDate = new Date();
     todayDate = formatDate(todayDate);
     todayDate = (todayDate.split('T')[0]);
+
+    let existing_players =[]
   
-    const queryToFetchActivePlayers = 'SELECT SUBSTR(LOGIN_TIME_STAMP, 1, 10) AS date_only FROM PLAYER_HISTORY';
-  
-   
+    const queryToFetchActivePlayers = 'SELECT SUBSTR(LOGIN_TIME_STAMP, 1, 10) AS date_only, GAME_PLAYED, PLATFORM, PLAYERID FROM PLAYER_HISTORY';
   
     db.all(queryToFetchActivePlayers,(err, resultActive) => {
       if (err) {
@@ -28,19 +28,42 @@ metricRouter.get("/fetchActivePlayers", authMisUser, (req, res) => {
       }
   
       let temp_activePlayer_array = [];
+      let final_activePlayer_array=[];
       
-      resultActive.map(item => temp_activePlayer_array.push(item.date_only));
-          temp_activePlayer_array.map((item)=>{
-            if(item == todayDate){
-              active_player_count++;
-            }
-     });
+    //   console.log("pid1", resultActive[0].PLAYERID);
+    //   existing_players.push(resultActive[0].PLAYERID);
+    //   console.log("ep", existing_players);
+      
+    temp_activePlayer_array   =   resultActive.filter((item, index) => {
+
+        return item.date_only === todayDate
+
+    });
+
+    console.log("tmp", temp_activePlayer_array.length);
+    
+          
+     temp_activePlayer_array.map((item)=> {
+                
+            if(!(existing_players.includes(item.PLAYERID))){
+                        existing_players.push(item.PLAYERID)
+                        final_activePlayer_array.push(item);
+                     }
+               
+             
+                
+       
+        });
+
+      console.log("ac pl", final_activePlayer_array);
   
+     
+
      const activePlayersCount = {
           "active_players":active_player_count
      }
       
-      res.status(201).json(activePlayersCount);
+      res.status(201).json(final_activePlayer_array);
     });
   });
   
@@ -184,7 +207,7 @@ const queryToFetchNewPlayers =
 //AND Primary_Registration_Date BETWEEN ? AND ? GROUP BY PLAYERID;`;
 
 // Execute the query with the fromDate and toDate as parameters
-db.all(queryToFetchNewPlayers, [fromDate, toDate, fromDate, toDate], (errNew, rowNew) => {
+db.all(queryToFetchNewPlayers, [fromDate, toDate], (errNew, rowNew) => {
     if (errNew) {
     console.log(errNew);
     return res.status(500).json({ error: errNew.message });
