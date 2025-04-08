@@ -9,6 +9,17 @@ const moment = require("moment");
 const authMisUser = require("../middlewares/authMW");
 
 
+function convertToCompactTimestamp(dateStr) {
+    // Input: '16-03-2025T16:00:58'
+    const [datePart, timePart] = dateStr.split('T');
+    const [day, month, year] = datePart.split('-');
+    const compact = `${year}${month}${day}${timePart.replace(/:/g, '')}`;
+    return compact; // Output: '20250316160058'
+  }
+  
+  
+  
+
 //fetch data of all active players
 metricRouter.get("/fetchActivePlayers", authMisUser, (req, res) => {
 
@@ -195,24 +206,25 @@ db.get(queryToFetchUniquePlayers, [fromDate, toDate], (err, row) => {
   
 //fetch the count of players registered between 2 dates (both inclusive) 
 metricRouter.get("/new_player_count", authMisUser, (req, res) => {
-// Extract the from date and to date from the query parameters
-let fromDate = req.query.fromDate;
-let toDate = req.query.toDate;
 
+console.log("raw", req.query.fromDate, req.query.toDate);
+
+    // Extract the from date and to date from the query parameters
+let fromDate = convertToCompactTimestamp(req.query.fromDate);
+let toDate = convertToCompactTimestamp(req.query.toDate);
 
 const queryToFetchNewPlayers =
-`SELECT DISTINCT * FROM PLAYER_HISTORY WHERE Primary_Registration_Date BETWEEN ? AND ? GROUP BY PLAYERID;`;
+`SELECT DISTINCT * FROM PLAYER_HISTORY 
+  WHERE Registration_Timestamp_Compact BETWEEN ? AND ? 
+  GROUP BY PLAYERID;`;
 
-//`SELECT DISTINCT * FROM PLAYER_HISTORY WHERE LOGIN_TIME_STAMP BETWEEN ? AND ? 
-//AND Primary_Registration_Date BETWEEN ? AND ? GROUP BY PLAYERID;`;
 
 // Execute the query with the fromDate and toDate as parameters
-db.all(queryToFetchNewPlayers, [fromDate, toDate], (errNew, rowNew) => {
+db.all(queryToFetchNewPlayers, [fromDate, toDate],(errNew, rowNew) => {
     if (errNew) {
     console.log(errNew);
     return res.status(500).json({ error: errNew.message });
     }
-
 
     //generate result
     const REALTIME_CARD_DATA = [
@@ -227,6 +239,41 @@ db.all(queryToFetchNewPlayers, [fromDate, toDate], (errNew, rowNew) => {
     res.json(REALTIME_CARD_DATA);
 });
 });
+
+
+//fetch results for new player registrations for last 7 periods based on date ranges received
+metricRouter.post("/unique_player_count/bulk", authMisUser, async (req, res) => {
+    const dateRanges = req.body.dateRanges;
+  
+    if (!Array.isArray(dateRanges) || dateRanges.length !== 7) {
+      return res.status(400).json({ error: "Please provide exactly 7 date ranges." });
+    }
+  
+    const queryToFetchNewPlayers =`SELECT DISTINCT * FROM PLAYER_HISTORY WHERE Registration_Timestamp_Compact BETWEEN ? AND ? GROUP BY PLAYERID;`;
+  
+    try {
+      const results = await Promise.all(
+        dateRanges.map(({ fromDate, toDate }) => {
+            let fromDateNew = convertToCompactTimestamp(fromDate);
+            let toDateNew = convertToCompactTimestamp(toDate);
+
+          return new Promise((resolve, reject) => {
+            db.all(queryToFetchNewPlayers, [fromDateNew, toDateNew], (err, rows) => {
+              if (err) {
+                return reject(err);
+              }
+              resolve(rows.length); // Only return the metricValue
+            });
+          });
+        })
+      );
+  
+      res.json(results); // Array of 7 numbers
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Failed to fetch data for one or more date ranges." });
+    }
+  });
   
   
 //fetch the count of players returned between 2 dates (both inclusive)

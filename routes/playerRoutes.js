@@ -128,7 +128,7 @@ playerRouter.get("/playerdupcheckContact",(req, res)=>{
 
 //login API for player- Client IP 
 playerRouter.post("/loginPlayerip", (req, res) => {
-const { platform, CLIENT_IP } = req.body;
+const { platform, CLIENT_IP, GAME_PLAYED } = req.body;
 
 let selected_player_details;
 
@@ -161,8 +161,8 @@ db.get(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
 
     //Add a record to PLAYER_SESSION_DETAILS
     const insertQueryforPlayerSession = `INSERT INTO PLAYER_SESSION_DETAILS 
-        (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, PLATFORM ) 
-        VALUES (?, ?, ?, ?, ?,?, ?)`;
+        (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, PLATFORM, GAME_PLAYED ) 
+        VALUES (?, ?, ?, ?, ?,?, ?, ?)`;
 
     db.run(
         insertQueryforPlayerSession,
@@ -174,6 +174,7 @@ db.get(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
         sessionId_player,
         logintime2_player,
         platform,
+        GAME_PLAYED
         ],
         (err_insert) => {
         if (err_insert) {
@@ -221,7 +222,7 @@ db.get(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
             sessionId_player,
             logintime2_player,
             player_primary_reg_date,
-            "NA",
+            GAME_PLAYED,
             platform,
             ],
             (err_history) => {
