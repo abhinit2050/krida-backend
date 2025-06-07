@@ -18,7 +18,6 @@ function convertToCompactTimestamp(dateStr) {
   }
   
   
-  
 
 //fetch data of all active players
 metricRouter.get("/fetchActivePlayers", authMisUser, (req, res) => {
@@ -276,45 +275,99 @@ metricRouter.post("/unique_player_count/bulk", authMisUser, async (req, res) => 
   });
   
   
-//fetch the count of players returned between 2 dates (both inclusive)
-metricRouter.get("/ret_player_count",(req,res)=>{
+// //fetch the count of players returned between 2 dates (both inclusive)
+// metricRouter.get("/ret_player_count",(req,res)=>{
 
-    // Extract the from date and to date from the query parameters
-    let fromDate = req.query.fromDate;
-    let toDate = req.query.toDate;
+//     // Extract the from date and to date from the query parameters
+//     let fromDate = req.query.fromDate;
+//     let toDate = req.query.toDate;
 
-    //query to fetch returning players between to and from dates
-    const queryTofetchReturnPlayers = `SELECT PLAYERID, COUNT(*) AS login_count
-            FROM PLAYER_HISTORY
-            WHERE LOGIN_TIME_STAMP BETWEEN Primary_Registration_Date AND ?
-            GROUP BY PLAYERID;`;
+//     //query to fetch returning players between to and from dates
+//     const queryTofetchReturnPlayers = `SELECT PLAYERID, COUNT(*) AS login_count
+//             FROM PLAYER_HISTORY
+//             WHERE LOGIN_TIME_STAMP BETWEEN Primary_Registration_Date AND ?
+//             GROUP BY PLAYERID;`;
 
-    db.all(queryTofetchReturnPlayers,[toDate],(errRet, rowRet)=>{
-    if(errRet){
-        console.log(errRet);
+//     db.all(queryTofetchReturnPlayers,[toDate],(errRet, rowRet)=>{
+//     if(errRet){
+//         console.log(errRet);
+//     }
+
+//     let finalRowRet = rowRet.filter((row)=>{
+//     return row.login_count>=4
+//     })
+
+//     console.log("final row ret", finalRowRet);
+//     //generate result
+//     const REALTIME_CARD_DATA = [
+        
+//         {
+//         metric: "Returning Players",
+//         metricValue: finalRowRet.length,
+//         percentage: null,
+//         },
+//     ];
+
+//     res.json(REALTIME_CARD_DATA);
+
+//     })
+                                
+// })
+
+
+const parseToSqliteDate = (input) => {
+  // Convert DD-MM-YYYYTHH:mm:ss to YYYY-MM-DD HH:mm:ss
+  const [datePart, timePart] = input.split("T");
+  const [day, month, year] = datePart.split("-");
+  return `${year}-${month}-${day} ${timePart}`;
+};
+
+
+//modified returning player count
+metricRouter.get("/ret_player_count", (req, res) => {
+  // Extract the fromDate and toDate from query parameters
+//  let fromDate = parseToSqliteDate(req.query.fromDate);
+// let toDate = parseToSqliteDate(req.query.toDate);
+
+let fromDate = (req.query.fromDate);
+let toDate = (req.query.toDate);
+
+console.log(fromDate, toDate);
+
+  // Validate inputs (optional but good practice)
+  if (!fromDate || !toDate) {
+    return res.status(400).json({ error: "Missing fromDate or toDate" });
+  }
+
+  // Query: select unique PLAYERIDs whose login is in range and after registration
+  const queryTofetchReturnPlayers = `
+    SELECT DISTINCT PLAYERID FROM PLAYER_HISTORY
+    WHERE LOGIN_TIME_STAMP BETWEEN ? AND ?
+      AND LOGIN_TIME_STAMP > Primary_Registration_Date;
+  `;
+
+  db.all(queryTofetchReturnPlayers, [fromDate, toDate], (err, rows) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Database error" });
     }
 
-    let finalRowRet = rowRet.filter((row)=>{
-    return row.login_count>=4
-    })
+    console.log(rows);
+    // Count of unique returning players
+    const returningPlayerCount = rows.length;
 
-    console.log("final row ret", finalRowRet);
-    //generate result
     const REALTIME_CARD_DATA = [
-        
-        {
+      {
         metric: "Returning Players",
-        metricValue: finalRowRet.length,
+        metricValue: returningPlayerCount,
         percentage: null,
-        },
+      },
     ];
 
     res.json(REALTIME_CARD_DATA);
+  });
+});
 
-    })
-                                
-})
-  
   
 //average playing time for a game between two dates
 metricRouter.get("/averagePlayTime", (req, res) => {
@@ -351,7 +404,6 @@ db.all(`SELECT ACTIVE_DURATION FROM PLAYER_HISTORY WHERE GAME_PLAYED = ? AND LOG
 //Average game played count per player for a specified date range
 metricRouter.get("/games_per_player",(req,res)=>{
 
-//firstly find the total game count between two dates
 
 // Extract the from date and to date from the query parameters
 const fromDate = req.query.fromDate;
@@ -396,6 +448,46 @@ db.get(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
     })
     
 });
+})
+
+//Total number of sessions played per player
+metricRouter.get("/sessions_per_player",(req, res)=>{
+
+      // Extract the from date and to date from the query parameters
+    const fromDate = req.query.fromDate;
+    const toDate = req.query.toDate;
+
+    // Query to get the count of total sessions by all players combined between the from date and to date; one session = 60 seconds
+
+    const queryToFetchTotalSessionCount =
+    `SELECT CAST((SUM(IFNULL(ACTIVE_DURATION, 0)) + 59) / 60 AS INTEGER) AS total_minutes, 
+    COUNT(*) AS total_rows FROM PLAYER_HISTORY WHERE LOGIN_TIME_STAMP BETWEEN ? AND ?;`
+
+// Execute the query with the fromDate and toDate as parameters
+db.get(queryToFetchTotalSessionCount, [fromDate, toDate], (err, row) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+
+    const { total_minutes, total_rows } = row;
+
+    if (total_rows === 0) {
+      return res.status(200).json({
+        message: 'No records found in the given range.',
+        average: 0,
+      });
+    }
+
+    const average = total_minutes / total_rows;
+
+    res.status(200).json({
+      totalSessions: total_minutes,
+      totalPlayers: total_rows,
+      averageSessionPerPlayer: average,
+    });
+  });
+
 })
   
   
