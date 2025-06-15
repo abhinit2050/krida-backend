@@ -508,5 +508,86 @@ db.all(queryToFetchEachGameCount,[fromDate, toDate],(errGame,rowsGame)=>{
 })
 })
 
+//conversion count for a specified date range
+metricRouter.get("/conversion_count", (req, res) => {
+    const fromDate = req.query.fromDate;
+    const toDate = req.query.toDate;
+
+    if (!fromDate || !toDate) {
+        return res.status(400).json({ error: "fromDate and toDate are required" });
+    }
+
+    const query = `
+        SELECT COUNT(*) AS conversion_count
+        FROM PLAYERS
+        WHERE Primary_Registration_Date BETWEEN ? AND ?
+        AND (
+            (EMAIL_ID IS NOT NULL AND EMAIL_ID != '')
+            OR
+            (contact IS NOT NULL AND contact != '')
+        )
+    `;
+
+    db.get(query, [fromDate, toDate], (err, row) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.status(200).json(row); // returns { conversion_count: <number> }
+    });
+});
+
+//conversion rate for a specified date range
+metricRouter.get("/conversion_rate", (req, res) => {
+    const fromDate = req.query.fromDate;
+    const toDate = req.query.toDate;
+
+    if (!fromDate || !toDate) {
+        return res.status(400).json({ error: "fromDate and toDate are required" });
+    }
+
+    const totalQuery = `
+        SELECT COUNT(*) AS total_count
+        FROM PLAYERS
+        WHERE Primary_Registration_Date BETWEEN ? AND ?
+    `;
+
+    const convertedQuery = `
+        SELECT COUNT(*) AS converted_count
+        FROM PLAYERS
+        WHERE Primary_Registration_Date BETWEEN ? AND ?
+        AND (
+            (EMAIL_ID IS NOT NULL AND EMAIL_ID != '')
+            OR
+            (contact IS NOT NULL AND contact != '')
+        )
+    `;
+
+    // First: get total count
+    db.get(totalQuery, [fromDate, toDate], (errTotal, totalRow) => {
+        if (errTotal) {
+            return res.status(500).json({ error: errTotal.message });
+        }
+
+        const totalCount = totalRow.total_count;
+
+        // If no players found, return 0 to avoid division by zero
+        if (totalCount === 0) {
+            return res.status(200).json({ conversion_rate: 0 });
+        }
+
+        // Then: get count of players with email/contact
+        db.get(convertedQuery, [fromDate, toDate], (errConverted, convertedRow) => {
+            if (errConverted) {
+                return res.status(500).json({ error: errConverted.message });
+            }
+
+            const convertedCount = convertedRow.converted_count;
+            const conversionRate = convertedCount / totalCount;
+
+            res.status(200).json({ conversion_rate: conversionRate });
+        });
+    });
+});
+
 
 module.exports = metricRouter;
