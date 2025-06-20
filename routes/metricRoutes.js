@@ -510,8 +510,12 @@ db.all(queryToFetchEachGameCount,[fromDate, toDate],(errGame,rowsGame)=>{
 
 //conversion count for a specified date range
 metricRouter.get("/conversion_count", (req, res) => {
-    const fromDate = req.query.fromDate;
-    const toDate = req.query.toDate;
+    const fromDate = formatDate(new Date(req.query.fromDate));
+    const toDate = formatDate(new Date(req.query.toDate));
+
+    
+
+    console.log(fromDate, "and",toDate)
 
     if (!fromDate || !toDate) {
         return res.status(400).json({ error: "fromDate and toDate are required" });
@@ -528,7 +532,7 @@ metricRouter.get("/conversion_count", (req, res) => {
         )
     `;
 
-    db.get(query, [fromDate, toDate], (err, row) => {
+    db.get(query, [fromDate.toString(), toDate].toString(), (err, row) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }

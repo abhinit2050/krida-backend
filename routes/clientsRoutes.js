@@ -1,6 +1,6 @@
 const express = require("express");
 const clientRouter = express.Router();
-const db = require("../config/database");
+const connection = require("../config/dbmysql")
 const formatDate = require("../utils/formatDate");
 
 clientRouter.post("/addClient", (req, res)=>{
@@ -11,9 +11,9 @@ clientRouter.post("/addClient", (req, res)=>{
     const querytoAddClient = `INSERT INTO CLIENTS ( Client_Name, Client_email, Client_GST, Client_Address, 
                     contact, Client_Category, Onboarding_date) VALUES (?, ?, ?, ?, ?, ?, ?);`
 
-    db.run(querytoAddClient, [Client_Name, Client_email, Client_GST, Client_Address, contact, Client_Category, onboardingDate], (err)=>{
+    connection.query(querytoAddClient, [Client_Name, Client_email, Client_GST, Client_Address, contact, Client_Category, onboardingDate], (err)=>{
         if(err){
-            res.status(500).send("Something went wrong: ", err);
+            res.status(500).json({ error: "Something went wrong", details: err.message });
         } else {
             res.json({
                 message:"Client added successfully!"
@@ -27,7 +27,7 @@ clientRouter.get("/allClients", (req, res)=>{
     try{
             const querytoFetchAllClients = `SELECT * FROM CLIENTS`;
             
-            db.all(querytoFetchAllClients, (err, result)=>{
+            connection.query(querytoFetchAllClients, (err, result)=>{
                 if(err){
                     res.status(500).send("Error fetching clients! "+err);
                 }

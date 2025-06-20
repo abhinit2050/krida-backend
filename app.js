@@ -1,22 +1,17 @@
-//public IP: 3.111.55.132
-//curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-//. ~/.nvm/nvm.sh
-//nvm install node
-
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const multer = require('multer'); 
-const db = require("./config/database");
+const connection = require("./config/dbmysql");
 const formatDate = require("./utils/formatDate");
 const app = express();
 
-
+// Middleware
 app.use(express.json()); 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors());
 
+// Routers
 const misUserRouter = require("./routes/misUserRoutes");
 const templateRouter = require("./routes/templateRoutes");
 const playerRouter = require("./routes/playerRoutes");
@@ -25,142 +20,90 @@ const gameRouter = require("./routes/gameRoutes");
 const clientRouter = require("./routes/clientsRoutes");
 
 app.use("/", misUserRouter);
-app.use("/",templateRouter);
+app.use("/", templateRouter);
 app.use("/", playerRouter);
 app.use("/", metricRouter);
 app.use("/", gameRouter);
-app.use("/", clientRouter)
+app.use("/", clientRouter);
 
-
-db.serialize(() => {
-
-  //Create a table for Clients
-  db.run(`CREATE TABLE IF NOT EXISTS CLIENTS (id INTEGER PRIMARY KEY, Client_Name TEXT, Client_email TEXT UNIQUE, Client_GST TEXT UNIQUE,
-         Client_Address TEXT, contact INTEGER unique, Client_Category TEXT, Onboarding_date Time)`);
-
-  //Create a table for client purchase details
-  db.run(`CREATE TABLE IF NOT EXISTS Client_purchases_record (id INTEGER PRIMARY KEY, Client_Id TEXT, Game_purchased_id TEXT, 
-     Last_Purchase_date TIME, Pack_valid_till TIME)`);
-
-  //Create a table for MIS users
-  db.run(
-    `CREATE TABLE IF NOT EXISTS MIS_USERS (id INTEGER PRIMARY KEY, name TEXT, email_ID TEXT UNIQUE, 
-    PASSWORD TEXT ,company TEXT, contact INTEGER unique, Registration_Date TEXT, USER_TYPE TEXT, default_Pwd boolean, client_id TEXT);`
-  );
-
-  //Create a table for user types
-  db.run(`CREATE TABLE IF NOT EXISTS User_Type (id INTEGER PRIMARY KEY, user_type_value TEXT)`);
-
-  //Create a table for session details of MIS users
-  db.run(
-    `CREATE TABLE IF NOT EXISTS MIS_USER_SESSION_DETAILS (id INTEGER PRIMARY KEY, MIS_USER_ID INT, name TEXT, email_ID TEXT, company TEXT, 
-    client_id TEXT, contact INT, Login_Time TEXT ,SESSION_ID CHAR(16) UNIQUE);`);
-
-  //Create a table for Players
-  db.run(
-    `CREATE TABLE IF NOT EXISTS PLAYERS (id INTEGER PRIMARY KEY, NAME TEXT, EMAIL_ID TEXT UNIQUE, 
-      contact INTEGER UNIQUE, CLIENT_IP TEXT UNIQUE, Primary_Registration_Date Time, Secondary_Registration_Date Time, POINTS INTEGER);`
-  );
-
-  //create a table to record player session details
-  db.run(
-    `CREATE TABLE IF NOT EXISTS PLAYER_SESSION_DETAILS (PLAYERID TEXT(45), EMAIL_ID TEXT, contact INTEGER, CLIENT_IP TEXT, 
-      SESSION_ID CHAR(16), 
-        LOGIN_TIME_STAMP TIME, ACTIVE_DURATION INTEGER, GAME_PLAYED TEXT(50), PLATFORM TEXT(45));`
-  );
-
-  //create a table to record player session history details
-  db.run(
-    `CREATE TABLE IF NOT EXISTS PLAYER_HISTORY (PLAYERID TEXT(45), SESSION_ID CHAR(16), EMAIL_ID TEXT, contact INTEGER, CLIENT_IP TEXT, 
-    LOGIN_TIME_STAMP TIME, Game_start_time TIME, LOGOUT_TIME_STAMP TIME, Primary_Registration_Date TIME, Secondary_Registration_Date Time, ACTIVE_DURATION INTEGER, 
-    GAME_PLAYED TEXT(50), PLATFORM TEXT(45), Registration_Timestamp_Compact TEXT);`
-  );
-
-  //create a table for the games on offfer
-  db.run(`CREATE TABLE IF NOT EXISTS GAMES (id INTEGER PRIMARY KEY, NAME);`);
-
-  //create a table for CMS operations
-  db.run(`CREATE TABLE IF NOT EXISTS CMS_TEMPLATE_DETAILS (id TEXT PRIMARY KEY, templateName TEXT, summary TEXT, backGroundColor TEXT, 
-    cardTextColor TEXT, cardColor TEXT, hiddenText TEXT, cardFrontText TEXT, backgroundPicture BLOB, backgroundPictureBack BLOB, 
-    fontSize INTEGER, fontFamily TEXT);`);
-
+// Connect to MySQL
+connection.connect((err) => {
+  if (err) {
+    console.error('Error connecting to MySQL: ' + err.stack);
+    return;
+  }
+  console.log('Connected to MySQL as id ' + connection.threadId);
 });
 
-//force logout the player after 10 minutes to count a session
-function deleteAllObsoleteSessions(){
-
+// Function to delete obsolete sessions after 30 minutes
+function deleteAllObsoleteSessions() {
   console.log("DELETING obsolete sessions at", new Date());
 
-  // Function to convert 'DD-MM-YYYYTHH:MM:SS' to a valid JavaScript Date object
-function parseCustomDate(dateString) {
-  const [datePart, timePart] = dateString.split('T');
-  const [day, month, year] = datePart.split('-');
-  return new Date(`${year}-${month}-${day}T${timePart}`);
-}
+  const currentDateObj = new Date();
+  const query = 'SELECT SESSION_ID, LOGIN_TIME_STAMP FROM PLAYER_SESSION_DETAILS';
 
-const queryForSessionLogOut = 'SELECT * FROM PLAYER_SESSION_DETAILS';
+  connection.query(query, (err, sessions) => {
+    if (err) {
+      console.error("Error fetching session details", err);
+      return;
+    }
 
-      // Current date
-      let currentDate = new Date();
-      currentDate= formatDate(currentDate);
-      const currentDateObj = parseCustomDate(currentDate);
-
-      db.all(queryForSessionLogOut,(err, resultSessionLogout)=>{
-          if(err){
-            console.log("Error fetching session details",err);
-          }
-
-          let obsoleteRecordsArray=[];
-          
-          resultSessionLogout.map((resItem)=>{
-            let temploginTime = (resItem.LOGIN_TIME_STAMP.toString());
-            temploginTime = parseCustomDate(temploginTime);
-            const diffInMs = currentDateObj - temploginTime;
-            const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
-
-            if(diffInMinutes > 30){
-              obsoleteRecordsArray.push(resItem.SESSION_ID);
-            }
-
-          })
-
-          if (obsoleteRecordsArray.length === 0) {
-            // No obsolete records to delete, respond early
-            console.log("No obsolete sessions to delete");
-          }
-          const obsoleteRecordsString = obsoleteRecordsArray.map(id  => `'${id}'`).join(',');
-
-          const queryToDeleteObsoleteRecords = `DELETE FROM PLAYER_SESSION_DETAILS WHERE SESSION_ID IN (${obsoleteRecordsString})`;
-
-          console.log(queryToDeleteObsoleteRecords);
-
-          db.run(queryToDeleteObsoleteRecords,(err)=>{
-                if(err){
-                  console.log("Error in deleting obsolete sessions, " + err)
-                }
-                console.log("All obsolete sessions deleted");
-          })
-
-
+    const obsoleteIds = sessions
+      .filter((row) => {
+        const loginTime = new Date(row.LOGIN_TIME_STAMP);
+        const diffInMinutes = Math.floor((currentDateObj - loginTime) / (1000 * 60));
+        return diffInMinutes > 30;
       })
+      .map((row) => `'${row.SESSION_ID}'`);
 
+    if (obsoleteIds.length === 0) {
+      console.log("No obsolete sessions to delete");
+      return;
+    }
 
+    const deleteQuery = `DELETE FROM PLAYER_SESSION_DETAILS WHERE SESSION_ID IN (${obsoleteIds.join(",")})`;
 
+    connection.query(deleteQuery, (err) => {
+      if (err) {
+        console.error("Error deleting obsolete sessions:", err);
+        return;
+      }
+      console.log("All obsolete sessions deleted");
+    });
+  });
 }
 
-//call the deleteAllObsoleteSessions function every 10 minutes
-setInterval(deleteAllObsoleteSessions, 600000); 
+// Schedule deletion every 10 minutes
+setInterval(deleteAllObsoleteSessions, 600000);
 
-
-//Home page route
+// Health check route
 app.get("/", (req, res) => {
   console.log("Home page API hit");
   res.send("You have landed on Home page of server");
 });
 
+// Test route
+app.get("/mysql/test", (req, res) => {
+  const query = `SELECT * FROM PLAYER_HISTORY`;
 
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching data:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
 
-//Listening on port 3500
+    res.json(results);
+  });
+});
+
+app.get("/test-db", (req, res) => {
+  connection.query("SHOW TABLES", (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+// Start server
 app.listen("3500", () => {
   console.log("Server listening on Port 3500");
 });
