@@ -5,6 +5,7 @@ const db = require("../config/database");
 const multer = require('multer'); 
 const { v4: uuidv4 } = require("uuid");
 const authMisUser = require("../middlewares/authMW");
+const connection = require("../config/dbmysql");
 
 // Set up multer storage (store files in memory as buffers)
 const storage = multer.memoryStorage(); // Stores files as buffers
@@ -21,7 +22,7 @@ templateRouter.post('/template/add', authMisUser, upload.fields([
     { name: 'backgroundPictureBack', maxCount: 1 }
   ]), (req, res) => {
 
-   console.log("user Type", req.user.USER_TYPE);
+   //console.log("user Type", req.user.USER_TYPE);
     try{
 
         const {
@@ -52,7 +53,7 @@ templateRouter.post('/template/add', authMisUser, upload.fields([
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)`;
       
       // Execute the SQL command
-      db.run(sql, [id, templateName, summary, backGroundColor, cardTextColor, cardColor, hiddenText, cardFrontText, 
+      connection.query(sql, [id, templateName, summary, backGroundColor, cardTextColor, cardColor, hiddenText, cardFrontText, 
             backgroundPicture, backgroundPictureBack, fontSize, fontFamily], function(err) {
           if (err) {
               console.error(err.message);
@@ -74,7 +75,7 @@ templateRouter.post('/template/add', authMisUser, upload.fields([
   templateRouter.get('/all/templates', authMisUser, (req, res) => {
     const queryToFetchTemplates = `SELECT * FROM CMS_TEMPLATE_DETAILS`;
   
-    db.all(queryToFetchTemplates, [], (err, rows) => {
+    connection.query(queryToFetchTemplates, [], (err, rows) => {
         if (err) {
             console.error(err.message);
             return res.status(500).json({ error: "Failed to retrieve data" });
@@ -113,7 +114,7 @@ templateRouter.post('/template/add', authMisUser, upload.fields([
   
     const queryTofetchSpecificTemplate = `SELECT * FROM CMS_TEMPLATE_DETAILS WHERE id = ?`;
   
-    db.get(queryTofetchSpecificTemplate, [id], (err, row) => {
+    connection.query(queryTofetchSpecificTemplate, [id], (err, row) => {
         if (err) {
             console.error(err.message);
             return res.status(500).json({ error: "Failed to retrieve the record" });
@@ -163,7 +164,7 @@ templateRouter.post('/template/add', authMisUser, upload.fields([
     // Fetch the existing record first
     const selectSql = `SELECT * FROM CMS_TEMPLATE_DETAILS WHERE id = ?`;
   
-    db.get(selectSql, [id], (err, existingRecord) => {
+    connection.query(selectSql, [id], (err, existingRecord) => {
         if (err) {
             console.error(err.message);
             return res.status(500).json({ error: "Failed to retrieve the record" });
@@ -176,6 +177,10 @@ templateRouter.post('/template/add', authMisUser, upload.fields([
   
         if(req.files['backgroundPicture'] && req.files['backgroundPictureBack']){
           console.log("picture detected");
+          console.log("BackPBack image size:", req.files['backgroundPictureBack'][0].buffer.length, "bytes");
+          console.log("BackG image size:", req.files['backgroundPicture'][0].buffer.length, "bytes");
+
+
             backgroundPictureValue = req.files['backgroundPicture'][0].buffer;
             backgroundPictureBackValue = req.files['backgroundPictureBack'][0].buffer;
             cardTextColorValue = existingRecord.cardTextColor;
@@ -188,9 +193,7 @@ templateRouter.post('/template/add', authMisUser, upload.fields([
           backgroundPictureValue=req.body.backgroundPicture;
           backgroundPictureBackValue=req.body.backgroundPictureBack;
         }
-  
-        console.log("values", cardTextColorValue, cardColorValue);
-  
+    
         // Prepare updated values: use existing values for columns not provided by the user
         const updatedData = {
           templateName: req.body.templateName || existingRecord.templateName,
@@ -223,7 +226,7 @@ templateRouter.post('/template/add', authMisUser, upload.fields([
     WHERE id = ?`;
   
         // Execute the update
-        db.run(updateTemplate, [
+        connection.query(updateTemplate, [
           updatedData.templateName,
           updatedData.summary,
           updatedData.backGroundColor,
@@ -261,7 +264,7 @@ templateRouter.post('/template/add', authMisUser, upload.fields([
   
   const queryToDeleteTemplate = `DELETE FROM CMS_TEMPLATE_DETAILS WHERE id = ?`;
   
-  db.run(queryToDeleteTemplate, [id], function(err) {
+  connection.query(queryToDeleteTemplate, [id], function(err) {
       if (err) {
           console.error(err.message);
           return res.status(500).json({ error: "Failed to delete the record" });
@@ -280,3 +283,6 @@ templateRouter.post('/template/add', authMisUser, upload.fields([
   
 
   module.exports = templateRouter;
+
+
+  //b7b901b7-e224-4a

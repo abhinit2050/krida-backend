@@ -1,6 +1,6 @@
 const express = require("express");
 const gameRouter = express.Router();
-const db = require("../config/database");
+const connection = require("../config/dbmysql")
 const authMisUser = require("../middlewares/authMW.js")
 
 
@@ -9,7 +9,7 @@ gameRouter.post("/addGame", authMisUser, (req, res) => {
 
 
   // Insert the new game into the database
-  db.run(`INSERT INTO GAMES (NAME) VALUES (?)`, [NAME], function (err) {
+  connection.query(`INSERT INTO GAMES (NAME) VALUES (?)`, [NAME], function (err) {
     if (err) {
       console.error(err.message);
       return res.status(500).send("Internal Server Error");
@@ -26,7 +26,7 @@ gameRouter.get("/allGames", authMisUser, (req, res)=>{
   try{
     const querytoFetchAllGames = `SELECT * FROM GAMES`;
 
-    db.all(querytoFetchAllGames, (err, result)=>{
+    connection.query(querytoFetchAllGames, (err, result)=>{
   
       if(err){
         res.status(500).send("Error fetching results! "+err);
