@@ -2,6 +2,7 @@ const express = require("express");
 const playerRouter = express.Router();
 // const {otpGenerate, otpVerify} = require("../utils/mobileOTPservice");
 const db = require("../config/database");
+const connection = require("../config/dbmysql");
 const { v4: uuidv4 } = require("uuid");
 const formatDate = require("../utils/formatDate");
 const moment = require("moment");
@@ -10,11 +11,10 @@ const moment = require("moment");
 //GET Ip address of the player
 playerRouter.get('/fetchip', async (req, res) => {
 
-    https://krida-x.com/fetchIp
+    //https://krida-x.com/fetchIp
   
     try{
       const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    //   let clientIp_final = clientIp.split('::ffff:')[1];
     let clientIp_final = clientIp.includes('::ffff:') ? clientIp.split('::ffff:')[1] : clientIp;  
     console.log("cip",clientIp_final);
       res.status(200).send(clientIp_final);
@@ -26,7 +26,7 @@ playerRouter.get('/fetchip', async (req, res) => {
     
     });
 
-//send OTP to the requested mobile number
+//send OTP to the requested mobile number - PENDING
 playerRouter.get('/sendOTP', async(req, res)=>{
     const{contact} = req.query;
 
@@ -51,18 +51,20 @@ playerRouter.get("/playerdupcheck",(req, res)=>{
     const params = [CLIENT_IP];
 
 
-    db.get(queryToFetchDuplicatePlayers, params, (err, resultDuplicate)=>{
+    connection.query(queryToFetchDuplicatePlayers, params, (err, resultDuplicate)=>{
     if (err) {
         res.status(500).send("Error " + err);
         return;
     }
-    if(resultDuplicate['COUNT(*)']>0){
-        console.log("res dupT", resultDuplicate['COUNT(*)']);
+    console.log("rd", resultDuplicate[0]['COUNT(*)']);
+
+    if(resultDuplicate[0]['COUNT(*)']>0){
+        console.log("res dupT", resultDuplicate[0]['COUNT(*)']);
         res.status(201).send(true);
     } else {
-        console.log("res dup", resultDuplicate);
+        console.log("res dup", resultDuplicate[0]);
         
-        console.log("res dupF", resultDuplicate['COUNT(*)']);
+        console.log("res dupF", resultDuplicate[0]['COUNT(*)']);
         res.status(201).send(false);
     }
     
@@ -70,7 +72,7 @@ playerRouter.get("/playerdupcheck",(req, res)=>{
 
 });
 
-//check duplicity of a player based on email
+//check duplicity of a player based on email - PENDING
 playerRouter.get("/playerdupcheckoAuth",(req, res)=>{
 
     const {EMAIL_ID} = req.query;
@@ -78,8 +80,9 @@ playerRouter.get("/playerdupcheckoAuth",(req, res)=>{
     const queryToFetchDuplicatePlayers = `SELECT COUNT(*) FROM PLAYERS WHERE EMAIL_ID=?`
     const params = [EMAIL_ID];
 
+    console.log("em", EMAIL_ID);
 
-    db.get(queryToFetchDuplicatePlayers, params, (err, resultDuplicate)=>{
+    connection.query(queryToFetchDuplicatePlayers, params, (err, resultDuplicate)=>{
     if (err) {
         res.status(500).send("Error " + err);
         return;
@@ -107,18 +110,18 @@ playerRouter.get("/playerdupcheckContact",(req, res)=>{
     const params = [contact];
 
 
-    db.get(queryToFetchDuplicatePlayers, params, (err, resultDuplicate)=>{
+    connection.query(queryToFetchDuplicatePlayers, params, (err, resultDuplicate)=>{
     if (err) {
         res.status(500).send("Error " + err);
         return;
     }
-    if(resultDuplicate['COUNT(*)']>0){
+    if(resultDuplicate[0]['COUNT(*)']>0){
         console.log("res dupT", resultDuplicate['COUNT(*)']);
         res.status(201).send(true);
     } else {
-        console.log("res dup", resultDuplicate);
+        console.log("res dup", resultDuplicate[0]);
         
-        console.log("res dupF", resultDuplicate['COUNT(*)']);
+        console.log("res dupF", resultDuplicate[0]['COUNT(*)']);
         res.status(201).send(false);
     }
     
@@ -135,7 +138,7 @@ let selected_player_details;
 //query to detect if the contact exists
 const queryToFetchPlayer = `SELECT * from PLAYERS WHERE CLIENT_IP = ?`;
 
-db.get(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
+connection.query(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
     
     if (err) {
     console.error("Error checking credentials:", err);
@@ -164,7 +167,7 @@ db.get(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
         (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, PLATFORM, GAME_PLAYED ) 
         VALUES (?, ?, ?, ?, ?,?, ?, ?)`;
 
-    db.run(
+    connection.query(
         insertQueryforPlayerSession,
         [
         selected_player_details.id,
@@ -191,7 +194,7 @@ db.get(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
 
     const queryTofetchPrimaryRegDate = `SELECT Primary_Registration_Date from PLAYERS WHERE id = ?`;
 
-    db.get(
+    connection.query(
         queryTofetchPrimaryRegDate,
         [selected_player_details.id],
         (errRegDate, resRegDate) => {
@@ -212,7 +215,7 @@ db.get(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
         GAME_PLAYED, PLATFORM ) 
     VALUES (?, ?, ?, ?, ?,?, ?, ?, ?);`;
 
-        db.run(
+        connection.query(
             insertQueryforPlayerHistory,
             [
             selected_player_details.id,
@@ -260,19 +263,18 @@ let selected_player_details;
 //query to detect if the contact exists
 const queryToFetchPlayer = `SELECT * from PLAYERS WHERE contact = ?`;
 
-db.get(queryToFetchPlayer, [contact], (err, result) => {
+connection.query(queryToFetchPlayer, [contact], (err, result) => {
     if (err) {
     console.error("Error checking credentials:", err);
     res.status(500).json({ error: "Internal server error" });
     return;
     }
 
-
     if (result) {
 
     //user found
-    selected_player_details = result;
-    console.log(`Match found - ${result.contact}`);
+    selected_player_details = result[0];
+    console.log(`Match found - ${result[0].contact}`);
 
     //code for otp verification with mobile number and OTP
 
@@ -288,12 +290,14 @@ db.get(queryToFetchPlayer, [contact], (err, result) => {
     const player_login_time = new Date();
     const logintime2_player = formatDate(player_login_time);
 
+    
+
     //Add a record to PLAYER_SESSION_DETAILS
     const insertQueryforPlayerSession = `INSERT INTO PLAYER_SESSION_DETAILS 
         (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, PLATFORM ) 
         VALUES (?, ?, ?, ?, ?,?, ?)`;
 
-    db.run(
+    connection.query(
         insertQueryforPlayerSession,
         [
         selected_player_details.id,
@@ -319,7 +323,7 @@ db.get(queryToFetchPlayer, [contact], (err, result) => {
 
     const queryTofetchPrimaryRegDate = `SELECT Primary_Registration_Date from PLAYERS WHERE id = ?`;
 
-    db.get(
+    connection.query(
         queryTofetchPrimaryRegDate,
         [selected_player_details.id],
         (errRegDate, resRegDate) => {
@@ -341,7 +345,7 @@ db.get(queryToFetchPlayer, [contact], (err, result) => {
         GAME_PLAYED, PLATFORM ) 
     VALUES (?, ?, ?, ?, ?,?, ?, ?, ?, ?)`
 
-        db.run(
+        connection.query(
             insertQueryforPlayerHistory,
             [
             selected_player_details.id,
@@ -392,17 +396,19 @@ playerRouter.post("/loginPlayeroAuth",(req,res)=>{
     //query to detect if the contact exists
     const queryToFetchPlayer = `SELECT * from PLAYERS WHERE EMAIL_ID = ?`;
     
-    db.get(queryToFetchPlayer, [EMAIL_ID], (err, result) => {
+    connection.query(queryToFetchPlayer, [EMAIL_ID], (err, result) => {
         if (err) {
         console.error("Error checking credentials:", err);
         res.status(500).json({ error: "Internal server error" });
         return;
         }
+
+         console.log("new", result);
     
         if (result) {
         //user found
-        selected_player_details = result;
-        console.log(`Match found - ${result.EMAIL_ID}`);
+        selected_player_details = result[0];
+        console.log(`Match found - ${result[0].EMAIL_ID}`);
     
         // Generate a UUID (Universally Unique Identifier)
         const uuid = uuidv4();
@@ -419,7 +425,7 @@ playerRouter.post("/loginPlayeroAuth",(req,res)=>{
             (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, PLATFORM ) 
             VALUES (?, ?, ?, ?, ?,?, ?)`;
     
-        db.run(
+        connection.query(
             insertQueryforPlayerSession,
             [
             selected_player_details.id,
@@ -445,7 +451,7 @@ playerRouter.post("/loginPlayeroAuth",(req,res)=>{
     
         const queryTofetchPrimaryRegDate = `SELECT Primary_Registration_Date from PLAYERS WHERE id = ?`;
     
-        db.get(
+        connection.query(
             queryTofetchPrimaryRegDate,
             [selected_player_details.id],
             (errRegDate, resRegDate) => {
@@ -467,7 +473,7 @@ playerRouter.post("/loginPlayeroAuth",(req,res)=>{
             GAME_PLAYED, PLATFORM ) 
         VALUES (?, ?, ?, ?, ?,?, ?, ?, ?, ?)`
     
-            db.run(
+            connection.query(
                 insertQueryforPlayerHistory,
                 [
                 selected_player_details.id,
@@ -507,6 +513,7 @@ playerRouter.post("/loginPlayeroAuth",(req,res)=>{
     });
 });
 
+//PENDING
 playerRouter.post("/verifyPlayerOtp",(req,res)=>{
     const {contact, otp} = req.body;
 
@@ -524,7 +531,7 @@ if (!SESSION_ID) {
 }
 
 // Delete row from PLAYER_SESSION_DETAILS
-db.run(`DELETE FROM PLAYER_SESSION_DETAILS WHERE SESSION_ID = ?`, [SESSION_ID], function(err) {
+connection.query(`DELETE FROM PLAYER_SESSION_DETAILS WHERE SESSION_ID = ?`, [SESSION_ID], function(err) {
     if (err) {
         return res.status(500).json({ error: err.message });
     }
@@ -533,28 +540,29 @@ db.run(`DELETE FROM PLAYER_SESSION_DETAILS WHERE SESSION_ID = ?`, [SESSION_ID], 
     // Update PLAYER_HISTORY table
     
     let logoutTimestamp_temp = new Date(); // current timestamp
-    let logoutTimestamp = formatDate(logoutTimestamp_temp)
+    let logoutTimestamp = (logoutTimestamp_temp)
     
     console.log("logout time stamp",logoutTimestamp);
     
-    db.get(`SELECT LOGIN_TIME_STAMP FROM PLAYER_HISTORY WHERE SESSION_ID = ?`, [SESSION_ID], (err, row) => {
+    connection.query(`SELECT LOGIN_TIME_STAMP FROM PLAYER_HISTORY WHERE SESSION_ID = ?`, [SESSION_ID], (err, row) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
-        
-        const loginTimestamp = row.LOGIN_TIME_STAMP;
-        console.log("login time stamp",loginTimestamp);
+       
+        const loginTimestamp = new Date(row[0].LOGIN_TIME_STAMP);
 
         // Calculate active duration in seconds
-        const loginTime = moment(loginTimestamp, 'DD-MM-YYYYTHH:mm:ss');
-        const logoutTime = moment(logoutTimestamp, 'DD-MM-YYYYTHH:mm:ss');
+        const loginTime = (loginTimestamp);
+        const logoutTime = (logoutTimestamp);
         console.log("both", logoutTime, loginTime);
-        const activeDuration = logoutTime.diff(loginTime, 'seconds');
+
+       // const activeDuration = logoutTime.diff(loginTime, 'seconds');
+         const activeDuration = Math.floor((logoutTime-loginTime)/1000);
 
         console.log("active duration",activeDuration);
 
         // Update PLAYER_HISTORY table
-        db.run(`UPDATE PLAYER_HISTORY SET LOGOUT_TIME_STAMP = ?, ACTIVE_DURATION = ? WHERE SESSION_ID = ?`, 
+        connection.query(`UPDATE PLAYER_HISTORY SET LOGOUT_TIME_STAMP = ?, ACTIVE_DURATION = ? WHERE SESSION_ID = ?`, 
                 [logoutTimestamp, activeDuration, SESSION_ID], function(err) {
             if (err) {
                 return res.status(500).json({ error: err.message });
@@ -577,7 +585,7 @@ playerRouter.post("/addPlayer", (req, res) => {
     const primary_reg_date_player = formatDate(tempDate);
 
     // Insert the new player into the database
-    db.run(
+    connection.query(
     `INSERT INTO PLAYERS ( CLIENT_IP, Primary_Registration_Date, contact, NAME, EMAIL_ID) VALUES (?, ?, ?, ?, ?)`,
     [CLIENT_IP, primary_reg_date_player, contact, NAME, EMAIL_ID],
     function (err) {
@@ -601,7 +609,7 @@ playerRouter.post("/addPlayeroAuth", (req, res) => {
     const primary_reg_date_player = formatDate(tempDate);
 
     // Insert the new player into the database
-    db.run(
+    connection.query(
     `INSERT INTO PLAYERS (  Primary_Registration_Date, NAME, EMAIL_ID) VALUES ( ?, ?, ?)`,
     [ primary_reg_date_player, NAME, EMAIL_ID],
     function (err) {
@@ -625,7 +633,7 @@ playerRouter.post("/addPlayerContact", (req, res) => {
     const primary_reg_date_player = formatDate(tempDate);
 
     // Insert the new player into the database
-    db.run(
+    connection.query(
     `INSERT INTO PLAYERS (  Primary_Registration_Date, NAME, contact) VALUES (  ?, ?, ?)`,
     [ primary_reg_date_player, NAME, contact],
     function (err) {
@@ -650,7 +658,7 @@ playerRouter.post("/updatePlayer",(req,res)=>{
     const secondary_reg_date_player = formatDate(tempDate2);
     console.log(secondary_reg_date_player);
 
-    db.run( queryToUpdateClientRecord, [secondary_reg_date_player], (errUpdate, resUpdate) => {
+    connection.query( queryToUpdateClientRecord, [secondary_reg_date_player], (errUpdate, resUpdate) => {
         if (errUpdate) {
             console.log("Error updating existing player", errUpdate);
             res.status(400).send(errUpdate.code==="SQLITE_CONSTRAINT"?"Duplicate values of Email or contact not allowed":errUpdate.code);
@@ -671,7 +679,7 @@ const fetchPlayerdetails = async (_playerid) => {
     const queryToFetchPlayerDetails = `SELECT * FROM PLAYERS WHERE id=${_playerid}`;
 
     return new Promise((resolve, reject) => {
-        db.get(queryToFetchPlayerDetails, (err, result) => {
+        connection.query(queryToFetchPlayerDetails, (err, result) => {
             if (err) {
                 return reject(err);
             }
@@ -690,7 +698,8 @@ playerRouter.post("/gameStarted", (req, res)=>{
     
     //find player details 
     fetchPlayerdetails(player_id).then((res)=>{
-        returnedPlayer = res;
+        
+        returnedPlayer = res[0];
     })
 
 
@@ -703,12 +712,12 @@ playerRouter.post("/gameStarted", (req, res)=>{
     const queryToFindPlayerSession = `SELECT * FROM PLAYER_SESSION_DETAILS WHERE PLAYERID = ${player_id}`;
     const game_start_time = formatDate(new Date());
 
-    db.get(queryToFindPlayerSession, (err, resultRecord)=>{
+    connection.query(queryToFindPlayerSession, (err, resultRecord)=>{
         if(err){
             return res.status(500).send("Internal Server Error");
         } 
-            
-        const detectedSession = resultRecord;
+          console.log("detected session", resultRecord);  
+        const detectedSession = resultRecord[0];
         
         //along with the details obtained from previous step, append game_played and add a record to player_history table
    const queryToaddPlayerHistory = `INSERT INTO PLAYER_HISTORY 
@@ -717,7 +726,7 @@ playerRouter.post("/gameStarted", (req, res)=>{
         GAME_PLAYED, PLATFORM ) 
         VALUES (?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?)`
 
-    db.run(
+    connection.query(
         queryToaddPlayerHistory,
         [
             detectedSession.PLAYERID,
@@ -755,7 +764,7 @@ playerRouter.post("/addPoints",(req, res)=>{
     //find player details 
     fetchPlayerdetails(player_id).then((resp)=>{
         
-        returnedPlayer = resp;
+        returnedPlayer = resp[0];
        
         if(returnedPlayer){
 
@@ -770,7 +779,7 @@ playerRouter.post("/addPoints",(req, res)=>{
 
             const querytoAddPoints = `UPDATE PLAYERS SET POINTS = ${updatedScore} WHERE id = ${player_id}`;
 
-            db.run(querytoAddPoints, (err_points)=>{
+            connection.query(querytoAddPoints, (err_points)=>{
         if(err_points){
             console.error("Error adding points to player score. ",err_points);
             res.status(500).json({ error: "Internal server error" });
@@ -794,19 +803,19 @@ playerRouter.get("/fetchPlayerScore", (req, res)=>{
     const {player_id} = req.query;
     const queryToFetchPlayerScore = `SELECT id, NAME, POINTS from PLAYERS WHERE id=${player_id}`;
 
-    db.get(queryToFetchPlayerScore, (err, result)=>{
+    connection.query(queryToFetchPlayerScore, (err, result)=>{
         if(err){
             console.error("Error fetching player score.",err)
         }
 
         console.log(result);
         const data = {
-            playerId:result.id,
-            playerName:result.NAME,
-            score:result.POINTS
+            playerId:result[0].id,
+            playerName:result[0].NAME,
+            score:result[0].POINTS
         }
 
-        res.status(202).send(result);
+        res.status(202).send([data]);
     })
 });
 
@@ -818,7 +827,7 @@ playerRouter.patch("/game_duration", (req,res)=>{
 
     const queryToUpdateDuration = `UPDATE PLAYER_HISTORY SET ACTIVE_DURATION =? WHERE SESSION_ID =? AND GAME_PLAYED=?`;
 
-    db.run(queryToUpdateDuration, [duration, sessionId, GAME_PLAYED], (err,resultDuration)=>{
+    connection.query(queryToUpdateDuration, [duration, sessionId, GAME_PLAYED], (err,resultDuration)=>{
         if(err){
             console.error('Error updating duration:', err);
     res.status(500).json({ success: false, message: 'Database error' });
