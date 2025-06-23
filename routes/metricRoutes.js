@@ -3,6 +3,7 @@ const express = require("express");
 const metricRouter = express.Router();
 
 const db = require("../config/database");
+const connection = require("../config/dbmysql")
 const { v4: uuidv4 } = require("uuid");
 const formatDate = require("../utils/formatDate");
 const moment = require("moment");
@@ -25,13 +26,13 @@ metricRouter.get("/fetchActivePlayers", authMisUser, (req, res) => {
     let active_player_count;
     let todayDate = new Date();
     todayDate = formatDate(todayDate);
-    todayDate = (todayDate.split('T')[0]);
+   todayDate = (todayDate.split(' ')[0]);
 
     let existing_players =[]
   
     const queryToFetchActivePlayers = 'SELECT SUBSTR(LOGIN_TIME_STAMP, 1, 10) AS date_only, GAME_PLAYED, PLATFORM, PLAYERID FROM PLAYER_HISTORY';
   
-    db.all(queryToFetchActivePlayers,(err, resultActive) => {
+    connection.query(queryToFetchActivePlayers,(err, resultActive) => {
       if (err) {
         res.status(500).send("Error " + err);
         return;
@@ -40,17 +41,11 @@ metricRouter.get("/fetchActivePlayers", authMisUser, (req, res) => {
       let temp_activePlayer_array = [];
       let final_activePlayer_array=[];
       
-    //   console.log("pid1", resultActive[0].PLAYERID);
-    //   existing_players.push(resultActive[0].PLAYERID);
-    //   console.log("ep", existing_players);
-      
     temp_activePlayer_array   =   resultActive.filter((item, index) => {
 
         return item.date_only === todayDate
 
     });
-
-    console.log("tmp", temp_activePlayer_array.length);
     
           
      temp_activePlayer_array.map((item)=> {
@@ -59,15 +54,7 @@ metricRouter.get("/fetchActivePlayers", authMisUser, (req, res) => {
                         existing_players.push(item.PLAYERID)
                         final_activePlayer_array.push(item);
                      }
-               
-             
-                
-       
         });
-
-      console.log("ac pl", final_activePlayer_array);
-  
-     
 
      const activePlayersCount = {
           "active_players":active_player_count
@@ -80,7 +67,7 @@ metricRouter.get("/fetchActivePlayers", authMisUser, (req, res) => {
   //fetch Active duration of all the players
 metricRouter.get("/active_duration_all", authMisUser, (req, res) => {
 // Query the database to get playerID and login_time_stamp
-db.all(
+connection.query(
     "SELECT PLAYERID, EMAIL_ID, LOGIN_TIME_STAMP FROM PLAYER_SESSION_DETAILS",
     (err, rows) => {
     if (err) {
@@ -111,7 +98,7 @@ db.all(
   
 //fetch count of total number of players
 metricRouter.get("/total_player_count", authMisUser, (req, res) => {
-db.get(
+connection.query(
     "SELECT count(*) AS total_player_count from PLAYERS",
     (err, resCount) => {
     if (err) {
@@ -119,7 +106,7 @@ db.get(
         return;
     }
 
-    res.status(200).json({ count: resCount.total_player_count });
+    res.status(200).json({ count: resCount[0].total_player_count });
     }
 );
 });
@@ -128,15 +115,15 @@ db.get(
 //fetch details of all the games played between 2 dates (both inclusive)
 metricRouter.get("/game_total_count", authMisUser, (req, res) => {
 // Extract the from date and to date from the query parameters
-const fromDate = req.query.fromDate;
-const toDate = req.query.toDate;
+const fromDate = new Date(req.query.fromDate);
+const toDate = new Date(req.query.toDate);
 
 // Query to get the count of players registered between the from date and to date
 const queryToFetchGameTotalCount =
-    "SELECT COUNT(*) AS game_total_count FROM PLAYER_HISTORY WHERE LOGIN_TIME_STAMP BETWEEN ? AND ?";
+    "SELECT COUNT(*) AS game_total_count FROM PLAYER_HISTORY WHERE GAME_PLAYED IS NOT NULL AND LOGIN_TIME_STAMP BETWEEN ? AND ?";
 
 // Execute the query with the fromDate and toDate as parameters
-db.get(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
+connection.query(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
     if (err) {
     return res.status(500).json({ error: err.message });
     }
@@ -144,7 +131,7 @@ db.get(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
     const REALTIME_CARD_DATA = [
     {
         metric: "Game Total Count",
-        metricValue: row.game_total_count,
+        metricValue: row[0].game_total_count,
         percentage: null,
     },
     ];
@@ -157,19 +144,21 @@ db.get(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
 //fetch total duration of game played between 2 dates (both inclusive)
 metricRouter.get("/total_time_played", authMisUser, (req, res) => {
     // Extract the from date and to date from the query parameters
-    const fromDate = req.query.fromDate;
-    const toDate = req.query.toDate;
+    const fromDate = new Date(req.query.fromDate);
+    const toDate = new Date(req.query.toDate);
     
     // Query to get the count of players registered between the from date and to date
     const queryToFetchTotalTimePlayed =
         "SELECT SUM(ACTIVE_DURATION) AS total_duration FROM PLAYER_HISTORY WHERE GAME_PLAYED != 'NA' AND LOGIN_TIME_STAMP BETWEEN ? AND ?";
     
     // Execute the query with the fromDate and toDate as parameters
-    db.get(queryToFetchTotalTimePlayed, [fromDate, toDate], (err, row) => {
+    connection.query(queryToFetchTotalTimePlayed, [fromDate, toDate], (err, row) => {
         if (err) {
         return res.status(500).json({ error: err.message });
         }
         //generate result
+
+        console.log("row", row);
         const REALTIME_CARD_DATA = [
         {
             metric: "Total Time Played",
@@ -186,19 +175,19 @@ metricRouter.get("/total_time_played", authMisUser, (req, res) => {
 //fetch unique players who played between 2 dates (both inclusive)
 metricRouter.get("/unique_player_count", authMisUser, (req, res) => {
 // Extract the from date and to date from the query parameters
-const fromDate = req.query.fromDate;
-const toDate = req.query.toDate;
+const fromDate = new Date(req.query.fromDate);
+const toDate = new Date(req.query.toDate);
 
 //query to get the count of unique players between the dates
 const queryToFetchUniquePlayers = `SELECT COUNT(DISTINCT PLAYERID) AS total_unique_players FROM PLAYER_HISTORY
 WHERE LOGIN_TIME_STAMP BETWEEN ? AND ?;`;
 
-db.get(queryToFetchUniquePlayers, [fromDate, toDate], (err, row) => {
+connection.query(queryToFetchUniquePlayers, [fromDate, toDate], (err, row) => {
     if (err) {
     console.error(err.message);
     return;
     }
-    console.log("Total unique players:", row.total_unique_players);
+    console.log("Total unique players:", row[0].total_unique_players);
     res.status(201).send(row);
 });
 });
@@ -206,25 +195,30 @@ db.get(queryToFetchUniquePlayers, [fromDate, toDate], (err, row) => {
 //fetch the count of players registered between 2 dates (both inclusive) 
 metricRouter.get("/new_player_count", authMisUser, (req, res) => {
 
-console.log("raw", req.query.fromDate, req.query.toDate);
-
     // Extract the from date and to date from the query parameters
-let fromDate = convertToCompactTimestamp(req.query.fromDate);
-let toDate = convertToCompactTimestamp(req.query.toDate);
+let fromDate = new Date(req.query.fromDate);
+let toDate = new Date(req.query.toDate);
 
 const queryToFetchNewPlayers =
-`SELECT DISTINCT * FROM PLAYER_HISTORY 
-  WHERE Registration_Timestamp_Compact BETWEEN ? AND ? 
-  GROUP BY PLAYERID;`;
+`SELECT 
+  PLAYERID,
+  ANY_VALUE(id) AS id,
+  ANY_VALUE(PRIMARY_REGISTRATION_DATE) AS PRIMARY_REGISTRATION_DATE,
+  ANY_VALUE(GAME_PLAYED) AS GAME_PLAYED,
+  ANY_VALUE(CONTACT) AS CONTACT
+FROM PLAYER_HISTORY
+WHERE PRIMARY_REGISTRATION_DATE BETWEEN ? AND ?
+GROUP BY PLAYERID;`
+
 
 
 // Execute the query with the fromDate and toDate as parameters
-db.all(queryToFetchNewPlayers, [fromDate, toDate],(errNew, rowNew) => {
+connection.query(queryToFetchNewPlayers, [fromDate, toDate],(errNew, rowNew) => {
     if (errNew) {
     console.log(errNew);
     return res.status(500).json({ error: errNew.message });
     }
-
+    console.log(rowNew);
     //generate result
     const REALTIME_CARD_DATA = [
     
@@ -248,16 +242,24 @@ metricRouter.post("/unique_player_count/bulk", authMisUser, async (req, res) => 
       return res.status(400).json({ error: "Please provide exactly 7 date ranges." });
     }
   
-    const queryToFetchNewPlayers =`SELECT DISTINCT * FROM PLAYER_HISTORY WHERE Registration_Timestamp_Compact BETWEEN ? AND ? GROUP BY PLAYERID;`;
+    const queryToFetchNewPlayers = `
+        SELECT 
+      PLAYERID,
+      ANY_VALUE(id) AS id,
+      ANY_VALUE(PRIMARY_REGISTRATION_DATE) AS PRIMARY_REGISTRATION_DATE,
+      ANY_VALUE(GAME_PLAYED) AS GAME_PLAYED,
+      ANY_VALUE(CONTACT) AS CONTACT
+    FROM PLAYER_HISTORY
+    WHERE PRIMARY_REGISTRATION_DATE BETWEEN ? AND ? GROUP BY PLAYERID;`
   
     try {
       const results = await Promise.all(
         dateRanges.map(({ fromDate, toDate }) => {
-            let fromDateNew = convertToCompactTimestamp(fromDate);
-            let toDateNew = convertToCompactTimestamp(toDate);
+            let fromDateNew = new Date(fromDate);
+            let toDateNew = new Date(toDate);
 
           return new Promise((resolve, reject) => {
-            db.all(queryToFetchNewPlayers, [fromDateNew, toDateNew], (err, rows) => {
+            connection.query(queryToFetchNewPlayers, [fromDateNew, toDateNew], (err, rows) => {
               if (err) {
                 return reject(err);
               }
@@ -329,8 +331,8 @@ metricRouter.get("/ret_player_count", (req, res) => {
 //  let fromDate = parseToSqliteDate(req.query.fromDate);
 // let toDate = parseToSqliteDate(req.query.toDate);
 
-let fromDate = (req.query.fromDate);
-let toDate = (req.query.toDate);
+let fromDate = new Date (req.query.fromDate);
+let toDate = new Date (req.query.toDate);
 
 console.log(fromDate, toDate);
 
@@ -340,19 +342,16 @@ console.log(fromDate, toDate);
   }
 
   // Query: select unique PLAYERIDs whose login is in range and after registration
-  const queryTofetchReturnPlayers = `
-    SELECT DISTINCT PLAYERID FROM PLAYER_HISTORY
-    WHERE LOGIN_TIME_STAMP BETWEEN ? AND ?
-      AND LOGIN_TIME_STAMP > Primary_Registration_Date;
-  `;
+  const queryTofetchReturnPlayers = `SELECT PLAYERID FROM PLAYER_HISTORY WHERE LOGIN_TIME_STAMP BETWEEN ? AND ?
+  AND LOGIN_TIME_STAMP > PRIMARY_REGISTRATION_DATE GROUP BY PLAYERID;`;
 
-  db.all(queryTofetchReturnPlayers, [fromDate, toDate], (err, rows) => {
+  connection.query(queryTofetchReturnPlayers, [fromDate, toDate], (err, rows) => {
     if (err) {
       console.error(err);
       return res.status(500).json({ error: "Database error" });
     }
 
-    console.log(rows);
+    console.log("r",rows);
     // Count of unique returning players
     const returningPlayerCount = rows.length;
 
@@ -372,17 +371,18 @@ console.log(fromDate, toDate);
 //average playing time for a game between two dates
 metricRouter.get("/averagePlayTime", (req, res) => {
 const {GAME_PLAYED} = req.query;
-const  fromDate = req.query.fromDate;
-const  toDate = req.query.toDate;
+const  fromDate = new Date(req.query.fromDate);
+const  toDate = new Date(req.query.toDate);
 
 // Fetch the rows from PLAYER_HISTORY for the specified game and date range
-db.all(`SELECT ACTIVE_DURATION FROM PLAYER_HISTORY WHERE GAME_PLAYED = ? AND LOGIN_TIME_STAMP BETWEEN ? AND ?`, 
+connection.query(`SELECT ACTIVE_DURATION FROM PLAYER_HISTORY WHERE GAME_PLAYED = ? AND LOGIN_TIME_STAMP BETWEEN ? AND ?`, 
         [GAME_PLAYED, fromDate, toDate], (err, rows) => {
     if (err) {
         return res.status(500).json({ error: err.message });
     }
 
     let sum=0;
+   
     // Calculate the total active duration
     const totalActiveDuration = rows.map((row) => {
         if (row.ACTIVE_DURATION !== null) {
@@ -406,8 +406,8 @@ metricRouter.get("/games_per_player",(req,res)=>{
 
 
 // Extract the from date and to date from the query parameters
-const fromDate = req.query.fromDate;
-const toDate = req.query.toDate;
+const fromDate = new Date(req.query.fromDate);
+const toDate = new Date(req.query.toDate);
 
 let game_count_total;
 let player_count_total;
@@ -417,22 +417,22 @@ const queryToFetchGameTotalCount =
     "SELECT COUNT(*) AS game_count_total_query FROM PLAYER_HISTORY WHERE LOGIN_TIME_STAMP BETWEEN ? AND ?";
 
 // Execute the query with the fromDate and toDate as parameters
-db.get(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
+connection.query(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
     if (err) {
     return res.status(500).json({ error: err.message });
     }
 
-    game_count_total = row.game_count_total_query;
+    game_count_total = row[0].game_count_total_query;
 
     //now find the distinct count of the players who played these games
     const queryTofetchDistinctPlayerCount = `SELECT COUNT(DISTINCT PLAYERID) AS distinct_players_count
     FROM PLAYER_HISTORY WHERE LOGIN_TIME_STAMP BETWEEN ? AND ?`;
 
-    db.get(queryTofetchDistinctPlayerCount, [fromDate, toDate], (errPlCount, rowPlCount)=>{
+    connection.query(queryTofetchDistinctPlayerCount, [fromDate, toDate], (errPlCount, rowPlCount)=>{
     if(errPlCount){
         return res.status(500).json({ error: err.message });
     }
-    player_count_total = rowPlCount.distinct_players_count;
+    player_count_total = rowPlCount[0].distinct_players_count;
 
     //generate result
     const REALTIME_CARD_DATA = [
@@ -450,12 +450,12 @@ db.get(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
 });
 })
 
-//Total number of sessions played per player
+//Total number of sessions played per player - PENDING
 metricRouter.get("/sessions_per_player",(req, res)=>{
 
       // Extract the from date and to date from the query parameters
-    const fromDate = req.query.fromDate;
-    const toDate = req.query.toDate;
+    const fromDate = new Date(req.query.fromDate);
+    const toDate = new Date(req.query.toDate);
 
     // Query to get the count of total sessions by all players combined between the from date and to date; one session = 60 seconds
 
@@ -464,13 +464,14 @@ metricRouter.get("/sessions_per_player",(req, res)=>{
     COUNT(*) AS total_rows FROM PLAYER_HISTORY WHERE LOGIN_TIME_STAMP BETWEEN ? AND ?;`
 
 // Execute the query with the fromDate and toDate as parameters
-db.get(queryToFetchTotalSessionCount, [fromDate, toDate], (err, row) => {
+connection.query(queryToFetchTotalSessionCount, [fromDate, toDate], (err, row) => {
     if (err) {
       console.error('Database error:', err);
       return res.status(500).json({ error: 'Internal server error' });
     }
 
-    const { total_minutes, total_rows } = row;
+    console.log("rows", row);
+    const { total_minutes, total_rows } = row[0];
 
     if (total_rows === 0) {
       return res.status(200).json({
@@ -494,13 +495,13 @@ db.get(queryToFetchTotalSessionCount, [fromDate, toDate], (err, row) => {
 //Individual game counts for a specified date range
 metricRouter.get("/each_game_count",(req,res)=>{
 
-const fromDate = req.query.fromDate;
-const toDate = req.query.toDate;
+const fromDate = new Date(req.query.fromDate);
+const toDate = new Date(req.query.toDate);
 
 const queryToFetchEachGameCount = `SELECT GAME_PLAYED AS game_name, COUNT(GAME_PLAYED) AS game_count FROM PLAYER_HISTORY
 WHERE LOGIN_TIME_STAMP BETWEEN ? AND ? GROUP BY GAME_PLAYED`;
 
-db.all(queryToFetchEachGameCount,[fromDate, toDate],(errGame,rowsGame)=>{
+connection.query(queryToFetchEachGameCount,[fromDate, toDate],(errGame,rowsGame)=>{
     if(errGame){
         return res.status(500).json({ error: errGame.message });
     }
@@ -510,8 +511,8 @@ db.all(queryToFetchEachGameCount,[fromDate, toDate],(errGame,rowsGame)=>{
 
 //conversion count for a specified date range
 metricRouter.get("/conversion_count", (req, res) => {
-    const fromDate = formatDate(new Date(req.query.fromDate));
-    const toDate = formatDate(new Date(req.query.toDate));
+    const fromDate = new Date(req.query.fromDate);
+    const toDate = new Date(req.query.toDate);
 
     
 
@@ -521,18 +522,16 @@ metricRouter.get("/conversion_count", (req, res) => {
         return res.status(400).json({ error: "fromDate and toDate are required" });
     }
 
-    const query = `
-        SELECT COUNT(*) AS conversion_count
+    const query = `SELECT COUNT(*) AS conversion_count
         FROM PLAYERS
         WHERE Primary_Registration_Date BETWEEN ? AND ?
         AND (
             (EMAIL_ID IS NOT NULL AND EMAIL_ID != '')
             OR
             (contact IS NOT NULL AND contact != '')
-        )
-    `;
+        )`;
 
-    db.get(query, [fromDate.toString(), toDate].toString(), (err, row) => {
+    connection.query(query, [fromDate, toDate], (err, row) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
@@ -542,37 +541,30 @@ metricRouter.get("/conversion_count", (req, res) => {
 
 //conversion rate for a specified date range
 metricRouter.get("/conversion_rate", (req, res) => {
-    const fromDate = req.query.fromDate;
-    const toDate = req.query.toDate;
+    const fromDate = new Date(req.query.fromDate);
+    const toDate = new Date(req.query.toDate);
 
     if (!fromDate || !toDate) {
         return res.status(400).json({ error: "fromDate and toDate are required" });
     }
 
     const totalQuery = `
-        SELECT COUNT(*) AS total_count
-        FROM PLAYERS
-        WHERE Primary_Registration_Date BETWEEN ? AND ?
-    `;
+        SELECT COUNT(*) AS total_count FROM PLAYERS WHERE Primary_Registration_Date BETWEEN ? AND ?`;
 
-    const convertedQuery = `
-        SELECT COUNT(*) AS converted_count
-        FROM PLAYERS
-        WHERE Primary_Registration_Date BETWEEN ? AND ?
+    const convertedQuery = `SELECT COUNT(*) AS converted_count FROM PLAYERS WHERE Primary_Registration_Date BETWEEN ? AND ?
         AND (
             (EMAIL_ID IS NOT NULL AND EMAIL_ID != '')
             OR
             (contact IS NOT NULL AND contact != '')
-        )
-    `;
+        )`;
 
     // First: get total count
-    db.get(totalQuery, [fromDate, toDate], (errTotal, totalRow) => {
+    connection.query(totalQuery, [fromDate, toDate], (errTotal, totalRow) => {
         if (errTotal) {
             return res.status(500).json({ error: errTotal.message });
         }
 
-        const totalCount = totalRow.total_count;
+        const totalCount = totalRow[0].total_count;
 
         // If no players found, return 0 to avoid division by zero
         if (totalCount === 0) {
@@ -580,15 +572,15 @@ metricRouter.get("/conversion_rate", (req, res) => {
         }
 
         // Then: get count of players with email/contact
-        db.get(convertedQuery, [fromDate, toDate], (errConverted, convertedRow) => {
+        connection.query(convertedQuery, [fromDate, toDate], (errConverted, convertedRow) => {
             if (errConverted) {
                 return res.status(500).json({ error: errConverted.message });
             }
 
-            const convertedCount = convertedRow.converted_count;
-            const conversionRate = convertedCount / totalCount;
+            const convertedCount = convertedRow[0].converted_count;
+            const conversionRate = (convertedCount / totalCount)*100;
 
-            res.status(200).json({ conversion_rate: conversionRate });
+            res.status(200).json({ conversion_rate: conversionRate.toFixed(2) });
         });
     });
 });

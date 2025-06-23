@@ -336,8 +336,9 @@ connection.query(queryToFetchPlayer, [contact], (err, result) => {
             return;
         }
         let insertQueryforPlayerHistory;
+
         //gather primary registration date
-        player_primary_reg_date = resRegDate.Primary_Registration_Date;
+        player_primary_reg_date = resRegDate[0].Primary_Registration_Date;
         
         //preparing query for adding record to Player History table
     insertQueryforPlayerHistory = `INSERT INTO PLAYER_HISTORY 
@@ -819,7 +820,7 @@ playerRouter.get("/fetchPlayerScore", (req, res)=>{
     })
 });
 
-//update Active duration of one game for a player
+//update Active duration of one game for a player - Obsole? as we have sessions per player API
 playerRouter.patch("/game_duration", (req,res)=>{
     const {sessionId, duration, GAME_PLAYED} = req.query;
 
