@@ -460,8 +460,8 @@ metricRouter.get("/sessions_per_player",(req, res)=>{
     // Query to get the count of total sessions by all players combined between the from date and to date; one session = 60 seconds
 
     const queryToFetchTotalSessionCount =
-    `SELECT CAST((SUM(IFNULL(ACTIVE_DURATION, 0)) + 59) / 60 AS INTEGER) AS total_minutes, 
-    COUNT(*) AS total_rows FROM PLAYER_HISTORY WHERE LOGIN_TIME_STAMP BETWEEN ? AND ?;`
+    `SELECT CAST((SUM(IFNULL(ACTIVE_DURATION, 0)) + 59) / 60 AS SIGNED) AS total_minutes, COUNT(*) AS total_rows 
+      FROM PLAYER_HISTORY WHERE LOGIN_TIME_STAMP BETWEEN ? AND ?;`
 
 // Execute the query with the fromDate and toDate as parameters
 connection.query(queryToFetchTotalSessionCount, [fromDate, toDate], (err, row) => {
@@ -470,7 +470,6 @@ connection.query(queryToFetchTotalSessionCount, [fromDate, toDate], (err, row) =
       return res.status(500).json({ error: 'Internal server error' });
     }
 
-    console.log("rows", row);
     const { total_minutes, total_rows } = row[0];
 
     if (total_rows === 0) {
