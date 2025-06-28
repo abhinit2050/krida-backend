@@ -10,5 +10,6 @@ MIS_Krida.db
 backup.txt
 misc
 kridaX.pem
+krida-x-key.pem
 new-key.pub
 .env

@@ -30,7 +30,7 @@ misUserRouter.post("/createUser", (req, res) => {
       const reg_date = formatDate(tempDate);
       // Insert the new MIS User into the database
       connection.query(
-        `INSERT INTO MIS_Users (name, company, contact, email_ID, PASSWORD, USER_TYPE, Registration_Date, default_Pwd, client_id) 
+        `INSERT INTO MIS_USERS (name, company, contact, email_ID, PASSWORD, USER_TYPE, Registration_Date, default_Pwd, client_id) 
         VALUES (?,?,?,?,?,?,?,?,?)`,
         [name, company, contact, email_ID, finalEncryptedPassword, user_Type, reg_date, true, client_id],
         function (err) {
