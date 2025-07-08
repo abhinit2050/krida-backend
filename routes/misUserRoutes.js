@@ -343,7 +343,7 @@ misUserRouter.get("/clientpurchasedGames", authMisUser, async (req, res)=>{
     const queryToFetchClientPurchasedGames = `
         SELECT g.id, g.Name 
         FROM Client_purchases_record cpr
-        JOIN Games g ON cpr.Game_purchased_id = g.id
+        JOIN GAMES g ON cpr.Game_purchased_id = g.id
         WHERE cpr.Client_Id = ?;
     `;
 
