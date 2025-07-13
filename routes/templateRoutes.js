@@ -4,7 +4,7 @@ const templateRouter = express.Router();
 const db = require("../config/database");
 const multer = require('multer'); 
 const { v4: uuidv4 } = require("uuid");
-const authMisUser = require("../middlewares/authMW");
+const {authMisUser} = require("../middlewares/authMW");
 const connection = require("../config/dbmysql");
 
 // Set up multer storage (store files in memory as buffers)

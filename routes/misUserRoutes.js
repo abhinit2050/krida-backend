@@ -5,7 +5,7 @@ const { hashPassword, verifyPassword } = require("../utils/hashingService");
 const formatDate = require("../utils/formatDate");
 const connection = require('../config/dbmysql');
 const { v4: uuidv4 } = require("uuid");
-const authMisUser = require("../middlewares/authMW");
+const {authMisUser} = require("../middlewares/authMW");
 
 
 //Create a new MIS User

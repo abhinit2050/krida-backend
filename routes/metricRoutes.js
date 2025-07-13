@@ -7,7 +7,7 @@ const connection = require("../config/dbmysql")
 const { v4: uuidv4 } = require("uuid");
 const formatDate = require("../utils/formatDate");
 const moment = require("moment");
-const authMisUser = require("../middlewares/authMW");
+const {authMisUser} = require("../middlewares/authMW");
 
 
 function convertToCompactTimestamp(dateStr) {

@@ -6,6 +6,7 @@ const connection = require("../config/dbmysql");
 const { v4: uuidv4 } = require("uuid");
 const formatDate = require("../utils/formatDate");
 const moment = require("moment");
+const { authPlayer } = require("../middlewares/authMW");
 
 
 //GET Ip address of the player
@@ -756,7 +757,7 @@ playerRouter.post("/gameStarted", (req, res)=>{
 })
 
 //add points to palyer score
-playerRouter.post("/addPoints",(req, res)=>{
+playerRouter.post("/addPoints",authPlayer,(req, res)=>{
     const {player_id, points} = req.body;
 
     let returnedPlayer;

@@ -1,7 +1,7 @@
 const express = require("express");
 const gameRouter = express.Router();
 const connection = require("../config/dbmysql")
-const authMisUser = require("../middlewares/authMW.js")
+const {authMisUser} = require("../middlewares/authMW.js")
 
 
 gameRouter.post("/addGame", authMisUser, (req, res) => {
