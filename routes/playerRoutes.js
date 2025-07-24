@@ -801,7 +801,7 @@ playerRouter.post("/addPoints",authPlayer,(req, res)=>{
 
 
 //fetch player score
-playerRouter.get("/fetchPlayerScore", (req, res)=>{
+playerRouter.get("/fetchPlayerScore", authPlayer, (req, res)=>{
     const {player_id} = req.query;
     const queryToFetchPlayerScore = `SELECT id, NAME, POINTS from PLAYERS WHERE id=${player_id}`;
 
@@ -821,7 +821,7 @@ playerRouter.get("/fetchPlayerScore", (req, res)=>{
     })
 });
 
-//update Active duration of one game for a player - Obsole? as we have sessions per player API
+//update Active duration of one game for a player - Obsolete? as we have sessions per player API
 playerRouter.patch("/game_duration", (req,res)=>{
     const {sessionId, duration, GAME_PLAYED} = req.query;
 

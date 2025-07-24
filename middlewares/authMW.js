@@ -11,6 +11,8 @@ const authMisUser = async(req,res,next)=>{
         res.status(400).send("Invalid session");
     }
 
+    const clientKey = (req.headers['client-key']);
+
     const queryToFetchUser = `SELECT u.name, u.email_ID, u.company, u.contact, u.USER_TYPE FROM MIS_USERS u JOIN 
                                 MIS_USER_SESSION_DETAILS usd ON usd.MIS_USER_ID = u.id WHERE usd.SESSION_ID = ?;`;
 
@@ -25,6 +27,7 @@ const authMisUser = async(req,res,next)=>{
              } else if(result.length==1){
                  req.user = result[0]; 
                  req.sessionId = sessionId;   
+                 req.clientKey = clientKey; 
                  next();       
                 
              }else if(!result){
@@ -56,13 +59,13 @@ connection.query(queryToValidatePlayerSession,[sessionId],(err,result)=>{
         res.status(500).send("Error in validating player!",err);
     } else{
 
-                console.log("player found with provided session is",result[0].EMAIL_ID);
+                console.log("player found with provided session is",result[0].EMAIL_ID+" "+result[0].contact);
                 if(result.length==0){
                     res.status(404).send("Player with valid session not found!");
                 } 
 
                 if(result.length>0 && result[0].PLAYERID != req.body.player_id){
-                    res.status(500).send("Adding points for other players not allowed!")
+                    res.status(500).send("Not authorized to perform this operation for other players!")
                 }else if(result.length>0 && result[0].PLAYERID == req.body.player_id){
                     req.user = result[0]; 
                  req.sessionId = sessionId;   

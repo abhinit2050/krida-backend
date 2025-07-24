@@ -18,6 +18,9 @@ function convertToCompactTimestamp(dateStr) {
     return compact; // Output: '20250316160058'
   }
 
+//through authMisUser, we are able to fetch the user => we have the client id of the user. 
+// This client id may be used for filterting the results
+
 //fetch data of all active players
 metricRouter.get("/fetchActivePlayers", authMisUser, (req, res) => {
 

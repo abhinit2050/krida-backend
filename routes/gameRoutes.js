@@ -4,6 +4,10 @@ const connection = require("../config/dbmysql")
 const {authMisUser} = require("../middlewares/authMW.js")
 
 
+
+//through authMisUser, we are able to fetch the user => we have the client id of the user. 
+// This client id may be used for filterting the results
+
 gameRouter.post("/addGame", authMisUser, (req, res) => {
   const { NAME } = req.body;
 

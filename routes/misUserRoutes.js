@@ -8,6 +8,10 @@ const { v4: uuidv4 } = require("uuid");
 const {authMisUser} = require("../middlewares/authMW");
 
 
+
+//through authMisUser, we are able to fetch the user => we have the client id of the user. 
+// This client id may be used for filterting the results
+
 //Create a new MIS User
 misUserRouter.post("/createUser", (req, res) => {
   
@@ -369,3 +373,21 @@ misUserRouter.get("/clientpurchasedGames", authMisUser, async (req, res)=>{
 
 module.exports = misUserRouter
 
+//ALTER TABLE Clients ADD COLUMN Client_Key VARCHAR(36);
+
+//SET SQL_SAFE_UPDATES = 0;
+
+//UPDATE Clients
+// JOIN (
+//   SELECT id, UUID() AS new_uuid
+//   FROM Clients
+// ) AS uuids ON Clients.id = uuids.id
+// SET Clients.Client_Key = uuids.new_uuid;
+
+//SET SQL_SAFE_UPDATES = 1;
+
+// ALTER TABLE Clients
+// MODIFY COLUMN Client_Key VARCHAR(36) NOT NULL;
+
+// ALTER TABLE Clients
+// ADD UNIQUE (Client_Key);
