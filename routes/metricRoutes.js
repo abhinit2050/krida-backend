@@ -28,10 +28,13 @@ metricRouter.get("/fetchActivePlayers", authMisUser, (req, res) => {
     let todayDate = new Date();
     todayDate = formatDate(todayDate);
    todayDate = (todayDate.split(' ')[0]);
-
+    let clientId = req.user[0].client_id;
+    console.log("client ID", clientId);
+   
     let existing_players =[]
   
-    const queryToFetchActivePlayers = 'SELECT SUBSTR(LOGIN_TIME_STAMP, 1, 10) AS date_only, GAME_PLAYED, PLATFORM, PLAYERID FROM PLAYER_HISTORY';
+    const queryToFetchActivePlayers = `SELECT SUBSTR(LOGIN_TIME_STAMP, 1, 10) AS date_only, GAME_PLAYED, PLATFORM, 
+                                        PLAYERID FROM PLAYER_HISTORY WHERE Client_Id=${clientId}`;
   
     connection.query(queryToFetchActivePlayers,(err, resultActive) => {
       if (err) {
@@ -278,19 +281,11 @@ metricRouter.post("/unique_player_count/bulk", authMisUser, async (req, res) => 
   });
 
 
-const parseToSqliteDate = (input) => {
-  // Convert DD-MM-YYYYTHH:mm:ss to YYYY-MM-DD HH:mm:ss
-  const [datePart, timePart] = input.split("T");
-  const [day, month, year] = datePart.split("-");
-  return `${year}-${month}-${day} ${timePart}`;
-};
 
 
 //modified returning player count
 metricRouter.get("/ret_player_count", (req, res) => {
-  // Extract the fromDate and toDate from query parameters
-//  let fromDate = parseToSqliteDate(req.query.fromDate);
-// let toDate = parseToSqliteDate(req.query.toDate);
+ 
 
 let fromDate = new Date (req.query.fromDate);
 let toDate = new Date (req.query.toDate);

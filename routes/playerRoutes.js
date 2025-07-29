@@ -136,7 +136,7 @@ const { platform, CLIENT_IP, GAME_PLAYED } = req.body;
 
 let selected_player_details;
 
-//query to detect if the contact exists
+//query to detect if the ip exists
 const queryToFetchPlayer = `SELECT * from PLAYERS WHERE CLIENT_IP = ?`;
 
 connection.query(queryToFetchPlayer, [CLIENT_IP], (err, result) => {

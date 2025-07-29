@@ -13,7 +13,7 @@ const authMisUser = async(req,res,next)=>{
 
     const clientKey = (req.headers['client-key']);
 
-    const queryToFetchUser = `SELECT u.name, u.email_ID, u.company, u.contact, u.USER_TYPE FROM MIS_USERS u JOIN 
+    const queryToFetchUser = `SELECT u.name, u.email_ID, u.company, u.contact, u.USER_TYPE, u.client_id FROM MIS_USERS u JOIN 
                                 MIS_USER_SESSION_DETAILS usd ON usd.MIS_USER_ID = u.id WHERE usd.SESSION_ID = ?;`;
 
        
@@ -27,7 +27,8 @@ const authMisUser = async(req,res,next)=>{
              } else if(result.length==1){
                  req.user = result[0]; 
                  req.sessionId = sessionId;   
-                 req.clientKey = clientKey; 
+                
+                 
                  next();       
                 
              }else if(!result){
