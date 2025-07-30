@@ -70,9 +70,11 @@ metricRouter.get("/fetchActivePlayers", authMisUser, (req, res) => {
   
   //fetch Active duration of all the players
 metricRouter.get("/active_duration_all", authMisUser, (req, res) => {
+
+   let clientId = req.user[0].client_id;
 // Query the database to get playerID and login_time_stamp
 connection.query(
-    "SELECT PLAYERID, EMAIL_ID, LOGIN_TIME_STAMP FROM PLAYER_SESSION_DETAILS",
+    "SELECT PLAYERID, EMAIL_ID, LOGIN_TIME_STAMP FROM PLAYER_SESSION_DETAILS WHERE Client_Id=${clientId}",
     (err, rows) => {
     if (err) {
         res.status(500).json({ error: err.message });
@@ -102,8 +104,9 @@ connection.query(
   
 //fetch count of total number of players
 metricRouter.get("/total_player_count", authMisUser, (req, res) => {
+let clientId = req.user[0].client_id;
 connection.query(
-    "SELECT count(*) AS total_player_count from PLAYERS",
+    `SELECT count(*) AS total_player_count from PLAYERS WHERE Client_Id = ${clientId}`,
     (err, resCount) => {
     if (err) {
         res.status(500).json({ error: err.message });
@@ -121,10 +124,11 @@ metricRouter.get("/game_total_count", authMisUser, (req, res) => {
 // Extract the from date and to date from the query parameters
 const fromDate = new Date(req.query.fromDate);
 const toDate = new Date(req.query.toDate);
+const clientId = req.user[0].client_id;
 
 // Query to get the count of players registered between the from date and to date
 const queryToFetchGameTotalCount =
-    "SELECT COUNT(*) AS game_total_count FROM PLAYER_HISTORY WHERE GAME_PLAYED IS NOT NULL AND LOGIN_TIME_STAMP BETWEEN ? AND ?";
+    `SELECT COUNT(*) AS game_total_count FROM PLAYER_HISTORY WHERE GAME_PLAYED IS NOT NULL AND Client_Id = ${clientId} AND LOGIN_TIME_STAMP BETWEEN ? AND ?`;
 
 // Execute the query with the fromDate and toDate as parameters
 connection.query(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
