@@ -149,7 +149,7 @@ connection.query(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
 });
 });
 
-//fetch total duration of game played between 2 dates (both inclusive) - next2
+//fetch total duration of game played between 2 dates (both inclusive) - next3
 metricRouter.get("/total_time_played", authMisUser, (req, res) => {
     // Extract the from date and to date from the query parameters
     const fromDate = new Date(req.query.fromDate);
