@@ -391,3 +391,12 @@ module.exports = misUserRouter
 
 // ALTER TABLE Clients
 // ADD UNIQUE (Client_Key);
+
+//ALTER TABLE PLAYERS ADD COLUMN Client_Id INT;
+// SET SQL_SAFE_UPDATES = 0;
+//UPDATE PLAYERS SET Client_Id = FLOOR(1 + (RAND() * 6));
+//SET SQL_SAFE_UPDATES = 1;
+
+//UPDATE PLAYER_HISTORY ph
+//JOIN PLAYERS p ON ph.PLAYERID = p.id
+//SET ph.Client_Id = p.Client_Id;
