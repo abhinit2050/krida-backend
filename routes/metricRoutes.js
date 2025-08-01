@@ -154,10 +154,12 @@ metricRouter.get("/total_time_played", authMisUser, (req, res) => {
     // Extract the from date and to date from the query parameters
     const fromDate = new Date(req.query.fromDate);
     const toDate = new Date(req.query.toDate);
-    
+    const clientId = req.user[0].client_id;
+
     // Query to get the count of players registered between the from date and to date
     const queryToFetchTotalTimePlayed =
-        "SELECT SUM(ACTIVE_DURATION) AS total_duration FROM PLAYER_HISTORY WHERE GAME_PLAYED != 'NA' AND LOGIN_TIME_STAMP BETWEEN ? AND ?";
+        `SELECT SUM(ACTIVE_DURATION) AS total_duration FROM PLAYER_HISTORY WHERE GAME_PLAYED != 'NA' AND 
+       Client_Id=${clientId} AND LOGIN_TIME_STAMP BETWEEN ? AND ?`;
     
     // Execute the query with the fromDate and toDate as parameters
     connection.query(queryToFetchTotalTimePlayed, [fromDate, toDate], (err, row) => {
