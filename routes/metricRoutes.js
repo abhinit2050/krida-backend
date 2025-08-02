@@ -9,6 +9,8 @@ const formatDate = require("../utils/formatDate");
 const moment = require("moment");
 const {authMisUser} = require("../middlewares/authMW");
 
+// Client_Id=${clientId}
+
 
 function convertToCompactTimestamp(dateStr) {
     // Input: '16-03-2025T16:00:58'
@@ -187,10 +189,11 @@ metricRouter.get("/unique_player_count", authMisUser, (req, res) => {
 // Extract the from date and to date from the query parameters
 const fromDate = new Date(req.query.fromDate);
 const toDate = new Date(req.query.toDate);
+const clientId = req.user[0].client_id;
 
 //query to get the count of unique players between the dates
 const queryToFetchUniquePlayers = `SELECT COUNT(DISTINCT PLAYERID) AS total_unique_players FROM PLAYER_HISTORY
-WHERE LOGIN_TIME_STAMP BETWEEN ? AND ?;`;
+WHERE Client_Id=${clientId} AND LOGIN_TIME_STAMP BETWEEN ? AND ?;`;
 
 connection.query(queryToFetchUniquePlayers, [fromDate, toDate], (err, row) => {
     if (err) {
@@ -208,6 +211,7 @@ metricRouter.get("/new_player_count", authMisUser, (req, res) => {
     // Extract the from date and to date from the query parameters
 let fromDate = new Date(req.query.fromDate);
 let toDate = new Date(req.query.toDate);
+const clientId = req.user[0].client_id;
 
 const queryToFetchNewPlayers =
 `SELECT 
@@ -217,7 +221,7 @@ const queryToFetchNewPlayers =
   ANY_VALUE(GAME_PLAYED) AS GAME_PLAYED,
   ANY_VALUE(CONTACT) AS CONTACT
 FROM PLAYER_HISTORY
-WHERE PRIMARY_REGISTRATION_DATE BETWEEN ? AND ?
+WHERE Client_Id=${clientId} AND PRIMARY_REGISTRATION_DATE BETWEEN ? AND ?
 GROUP BY PLAYERID;`
 
 
@@ -247,6 +251,7 @@ connection.query(queryToFetchNewPlayers, [fromDate, toDate],(errNew, rowNew) => 
 //fetch results for new player registrations for last 7 periods based on date ranges received
 metricRouter.post("/unique_player_count/bulk", authMisUser, async (req, res) => {
     const dateRanges = req.body.dateRanges;
+    const clientId = req.user[0].client_id;
   
     if (!Array.isArray(dateRanges) || dateRanges.length !== 7) {
       return res.status(400).json({ error: "Please provide exactly 7 date ranges." });
@@ -260,7 +265,7 @@ metricRouter.post("/unique_player_count/bulk", authMisUser, async (req, res) => 
       ANY_VALUE(GAME_PLAYED) AS GAME_PLAYED,
       ANY_VALUE(CONTACT) AS CONTACT
     FROM PLAYER_HISTORY
-    WHERE PRIMARY_REGISTRATION_DATE BETWEEN ? AND ? GROUP BY PLAYERID;`
+    WHERE Client_Id=${clientId} AND PRIMARY_REGISTRATION_DATE BETWEEN ? AND ? GROUP BY PLAYERID;`
   
     try {
       const results = await Promise.all(
@@ -287,14 +292,13 @@ metricRouter.post("/unique_player_count/bulk", authMisUser, async (req, res) => 
   });
 
 
-
-
 //modified returning player count
-metricRouter.get("/ret_player_count", (req, res) => {
+metricRouter.get("/ret_player_count", authMisUser, (req, res) => {
  
 
 let fromDate = new Date (req.query.fromDate);
 let toDate = new Date (req.query.toDate);
+const clientId = req.user[0].client_id;
 
 console.log(fromDate, toDate);
 
@@ -304,7 +308,7 @@ console.log(fromDate, toDate);
   }
 
   // Query: select unique PLAYERIDs whose login is in range and after registration
-  const queryTofetchReturnPlayers = `SELECT PLAYERID FROM PLAYER_HISTORY WHERE LOGIN_TIME_STAMP BETWEEN ? AND ?
+  const queryTofetchReturnPlayers = `SELECT PLAYERID FROM PLAYER_HISTORY WHERE Client_Id=${clientId} AND LOGIN_TIME_STAMP BETWEEN ? AND ?
   AND LOGIN_TIME_STAMP > PRIMARY_REGISTRATION_DATE GROUP BY PLAYERID;`;
 
   connection.query(queryTofetchReturnPlayers, [fromDate, toDate], (err, rows) => {
@@ -331,13 +335,15 @@ console.log(fromDate, toDate);
 
   
 //average playing time for a game between two dates
-metricRouter.get("/averagePlayTime", (req, res) => {
+metricRouter.get("/averagePlayTime", authMisUser, (req, res) => {
 const {GAME_PLAYED} = req.query;
 const  fromDate = new Date(req.query.fromDate);
 const  toDate = new Date(req.query.toDate);
+const clientId = req.user[0].client_id;
 
 // Fetch the rows from PLAYER_HISTORY for the specified game and date range
-connection.query(`SELECT ACTIVE_DURATION FROM PLAYER_HISTORY WHERE GAME_PLAYED = ? AND LOGIN_TIME_STAMP BETWEEN ? AND ?`, 
+connection.query(`SELECT ACTIVE_DURATION FROM PLAYER_HISTORY WHERE Client_Id=${clientId} AND  
+                    GAME_PLAYED = ? AND LOGIN_TIME_STAMP BETWEEN ? AND ?`, 
         [GAME_PLAYED, fromDate, toDate], (err, rows) => {
     if (err) {
         return res.status(500).json({ error: err.message });
@@ -364,19 +370,21 @@ connection.query(`SELECT ACTIVE_DURATION FROM PLAYER_HISTORY WHERE GAME_PLAYED =
   
   
 //Average game played count per player for a specified date range
-metricRouter.get("/games_per_player",(req,res)=>{
+metricRouter.get("/games_per_player", authMisUser,(req,res)=>{
 
 
 // Extract the from date and to date from the query parameters
 const fromDate = new Date(req.query.fromDate);
 const toDate = new Date(req.query.toDate);
+const clientId = req.user[0].client_id;
 
 let game_count_total;
 let player_count_total;
 
 // Query to get the count of total sessions by all players combined between the from date and to date
 const queryToFetchGameTotalCount =
-    "SELECT COUNT(*) AS game_count_total_query FROM PLAYER_HISTORY WHERE GAME_PLAYED <> 'NA' AND LOGIN_TIME_STAMP BETWEEN ? AND ?";
+    `SELECT COUNT(*) AS game_count_total_query FROM PLAYER_HISTORY WHERE Client_Id=${clientId} AND GAME_PLAYED <> 'NA' 
+        AND LOGIN_TIME_STAMP BETWEEN ? AND ?`;
 
 // Execute the query with the fromDate and toDate as parameters
 connection.query(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
@@ -388,7 +396,7 @@ connection.query(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
 
     //now find the distinct count of the players who played these games
     const queryTofetchDistinctPlayerCount = `SELECT COUNT(DISTINCT PLAYERID) AS distinct_players_count
-    FROM PLAYER_HISTORY WHERE GAME_PLAYED <> 'NA' AND LOGIN_TIME_STAMP BETWEEN ? AND ?`;
+    FROM PLAYER_HISTORY WHERE Client_Id=${clientId} AND GAME_PLAYED <> 'NA' AND LOGIN_TIME_STAMP BETWEEN ? AND ?`;
 
     connection.query(queryTofetchDistinctPlayerCount, [fromDate, toDate], (errPlCount, rowPlCount)=>{
     if(errPlCount){
