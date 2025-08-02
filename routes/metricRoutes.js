@@ -9,8 +9,6 @@ const formatDate = require("../utils/formatDate");
 const moment = require("moment");
 const {authMisUser} = require("../middlewares/authMW");
 
-// Client_Id=${clientId}
-
 
 function convertToCompactTimestamp(dateStr) {
     // Input: '16-03-2025T16:00:58'
@@ -421,17 +419,17 @@ connection.query(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
 })
 
 //Total number of sessions played per player - PENDING
-metricRouter.get("/sessions_per_player",(req, res)=>{
+metricRouter.get("/sessions_per_player", authMisUser, (req, res)=>{
 
       // Extract the from date and to date from the query parameters
     const fromDate = new Date(req.query.fromDate);
     const toDate = new Date(req.query.toDate);
-
+    const clientId = req.user[0].client_id;
     // Query to get the count of total sessions by all players combined between the from date and to date; one session = 60 seconds
 
     const queryToFetchTotalSessionCount =
     `SELECT CAST((SUM(IFNULL(ACTIVE_DURATION, 0)) + 59) / 30 AS SIGNED) AS total_minutes, COUNT(*) AS total_rows 
-      FROM PLAYER_HISTORY WHERE LOGIN_TIME_STAMP BETWEEN ? AND ?;`
+      FROM PLAYER_HISTORY WHERE Client_Id=${clientId} AND LOGIN_TIME_STAMP BETWEEN ? AND ?;`
 
 // Execute the query with the fromDate and toDate as parameters
 connection.query(queryToFetchTotalSessionCount, [fromDate, toDate], (err, row) => {
@@ -454,7 +452,7 @@ connection.query(queryToFetchTotalSessionCount, [fromDate, toDate], (err, row) =
     res.status(200).json({
       totalSessions: total_minutes,
       totalPlayers: total_rows,
-      averageSessionPerPlayer: average,
+      averageSessionPerPlayer: average.toFixed(2),
     });
   });
 
@@ -462,13 +460,14 @@ connection.query(queryToFetchTotalSessionCount, [fromDate, toDate], (err, row) =
   
   
 //Individual game counts for a specified date range
-metricRouter.get("/each_game_count",(req,res)=>{
+metricRouter.get("/each_game_count",authMisUser,(req,res)=>{
 
 const fromDate = new Date(req.query.fromDate);
 const toDate = new Date(req.query.toDate);
+const clientId = req.user[0].client_id;
 
 const queryToFetchEachGameCount = `SELECT GAME_PLAYED AS game_name, COUNT(GAME_PLAYED) AS game_count FROM PLAYER_HISTORY
-WHERE LOGIN_TIME_STAMP BETWEEN ? AND ? GROUP BY GAME_PLAYED`;
+WHERE Client_Id=${clientId} AND LOGIN_TIME_STAMP BETWEEN ? AND ? GROUP BY GAME_PLAYED`;
 
 connection.query(queryToFetchEachGameCount,[fromDate, toDate],(errGame,rowsGame)=>{
     if(errGame){
@@ -479,10 +478,10 @@ connection.query(queryToFetchEachGameCount,[fromDate, toDate],(errGame,rowsGame)
 })
 
 //conversion count for a specified date range
-metricRouter.get("/conversion_count", (req, res) => {
+metricRouter.get("/conversion_count", authMisUser, (req, res) => {
     const fromDate = new Date(req.query.fromDate);
     const toDate = new Date(req.query.toDate);
-
+    const clientId = req.user[0].client_id;
     
 
     console.log(fromDate, "and",toDate)
@@ -493,7 +492,7 @@ metricRouter.get("/conversion_count", (req, res) => {
 
     const query = `SELECT COUNT(*) AS conversion_count
         FROM PLAYERS
-        WHERE Primary_Registration_Date BETWEEN ? AND ?
+        WHERE Client_Id=${clientId} AND Primary_Registration_Date BETWEEN ? AND ?
         AND (
             (EMAIL_ID IS NOT NULL AND EMAIL_ID != '')
             OR
@@ -509,9 +508,10 @@ metricRouter.get("/conversion_count", (req, res) => {
 });
 
 //conversion rate for a specified date range
-metricRouter.get("/conversion_rate", (req, res) => {
+metricRouter.get("/conversion_rate", authMisUser, (req, res) => {
     const fromDate = new Date(req.query.fromDate);
     const toDate = new Date(req.query.toDate);
+    const clientId = req.user[0].client_id;
 
     if (!fromDate || !toDate) {
         return res.status(400).json({ error: "fromDate and toDate are required" });
@@ -520,7 +520,8 @@ metricRouter.get("/conversion_rate", (req, res) => {
     const totalQuery = `
         SELECT COUNT(*) AS total_count FROM PLAYERS WHERE Primary_Registration_Date BETWEEN ? AND ?`;
 
-    const convertedQuery = `SELECT COUNT(*) AS converted_count FROM PLAYERS WHERE Primary_Registration_Date BETWEEN ? AND ?
+    const convertedQuery = `SELECT COUNT(*) AS converted_count FROM PLAYERS WHERE Client_Id=${clientId} AND 
+          Primary_Registration_Date BETWEEN ? AND ?
         AND (
             (EMAIL_ID IS NOT NULL AND EMAIL_ID != '')
             OR
@@ -558,3 +559,4 @@ metricRouter.get("/conversion_rate", (req, res) => {
 
 
 module.exports = metricRouter;
+
