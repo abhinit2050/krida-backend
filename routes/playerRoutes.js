@@ -12,6 +12,9 @@ const { authPlayer } = require("../middlewares/authMW");
 
 
 function fetchClientId(clientKey){
+    if (!clientKey) {
+        return Promise.resolve(null);
+    }
     
     return new Promise((resolve, reject) => {
         
@@ -67,11 +70,16 @@ playerRouter.get("/playerdupcheck",async (req, res)=>{
 
     const {CLIENT_IP} = req.query; //this client is player
     const clientKey = (req.headers['client-key']); //this client is our customer
+    if(!clientKey){
+        return res.status(400).send("Client Key is required");
+    }
+   
 
     let clientId = await fetchClientId(clientKey);
     console.log("clientId", clientId);
     
-    const queryToFetchDuplicatePlayers = `SELECT COUNT(*) FROM PLAYERS WHERE CLIENT_IP=? && client_id = ${clientId }`;
+    const queryToFetchDuplicatePlayers = `SELECT COUNT(*) FROM PLAYERS WHERE CLIENT_IP=? AND 
+                        Client_Id = ${clientId }`;
     const params = [CLIENT_IP];
 
 
@@ -102,9 +110,14 @@ playerRouter.get("/playerdupcheckoAuth",async (req, res)=>{
     const {EMAIL_ID} = req.query;
     const clientKey = (req.headers['client-key']); //this client is our customer
     let clientId = await fetchClientId(clientKey);
+
+    if(!clientKey){
+        return res.status(400).send("Client Key is required");
+    }
+   
     
     const queryToFetchDuplicatePlayers = `SELECT COUNT(*) FROM PLAYERS WHERE EMAIL_ID=? AND 
-                                        Client_id = ${clientId}`;
+                                        Client_Id = ${clientId}`;
     const params = [EMAIL_ID];
 
     console.log("cid", clientId);
@@ -134,9 +147,13 @@ playerRouter.get("/playerdupcheckContact",async (req, res)=>{
     const {contact} = req.query;
     const clientKey = (req.headers['client-key']); //this client is our customer
     let clientId = await fetchClientId(clientKey);
+    if(!clientKey){
+        return res.status(400).send("Client Key is required");
+    }
+   
     
     const queryToFetchDuplicatePlayers = `SELECT COUNT(*) FROM PLAYERS WHERE contact=? AND 
-                                        Client_id = ${clientId}`
+                                        Client_Id = ${clientId}`
     const params = [contact];
 
 
@@ -165,10 +182,15 @@ const { platform, CLIENT_IP, GAME_PLAYED } = req.body;
 const clientKey = (req.headers['client-key']); //this client is our customer
 let clientId = await fetchClientId(clientKey);
 
+if(!clientKey){
+        return res.status(400).send("Client Key is required");
+    }
+   
+
 let selected_player_details;
 
 //query to detect if the ip exists
-const queryToFetchPlayer = `SELECT * from PLAYERS WHERE CLIENT_IP = ? AND Client_id = ${clientId}`;
+const queryToFetchPlayer = `SELECT * from PLAYERS WHERE CLIENT_IP = ? AND Client_Id = ${clientId}`;
 
 connection.query(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
     
@@ -178,7 +200,7 @@ connection.query(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
     return;
     }
 
-    if (result) {
+    if (result.length>0) {
     //user found
     selected_player_details = result[0];
     console.log(`Match found - ${result[0].CLIENT_IP}`);
@@ -285,27 +307,37 @@ connection.query(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
         );
         }
     );
+    }else{
+         res.status(200).json({errorMsg:"No player found with provided IP address"});
     }
 });
 });
   
 //login API for player - credentials
-playerRouter.post("/loginPlayerCredentials", (req, res) => {
+playerRouter.post("/loginPlayerCredentials", async(req, res) => {
 const { contact, platform } = req.body;
+const clientKey = (req.headers['client-key']); //this client is our customer
+let clientId = await fetchClientId(clientKey);
+if(!clientKey){
+        return res.status(400).send("Client Key is required");
+    }
+   
 
 let selected_player_details;
 
 //query to detect if the contact exists
-const queryToFetchPlayer = `SELECT * from PLAYERS WHERE contact = ?`;
+const queryToFetchPlayer = `SELECT * from PLAYERS WHERE contact = ? AND Client_Id = ${clientId}`;
 
 connection.query(queryToFetchPlayer, [contact], (err, result) => {
+
+    console.log("result", result);
     if (err) {
     console.error("Error checking credentials:", err);
     res.status(500).json({ error: "Internal server error" });
     return;
     }
 
-    if (result) {
+    if (result.length>0) {
 
     //user found
     selected_player_details = result[0];
@@ -329,8 +361,8 @@ connection.query(queryToFetchPlayer, [contact], (err, result) => {
 
     //Add a record to PLAYER_SESSION_DETAILS
     const insertQueryforPlayerSession = `INSERT INTO PLAYER_SESSION_DETAILS 
-        (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, PLATFORM ) 
-        VALUES (?, ?, ?, ?, ?,?, ?)`;
+        (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, PLATFORM, Client_Id ) 
+        VALUES (?, ?, ?, ?, ?,?, ?,?)`;
 
     connection.query(
         insertQueryforPlayerSession,
@@ -342,6 +374,7 @@ connection.query(queryToFetchPlayer, [contact], (err, result) => {
         sessionId_player,
         logintime2_player,
         platform,
+        selected_player_details.Client_Id
         ],
         (err_insert) => {
         if (err_insert) {
@@ -378,8 +411,8 @@ connection.query(queryToFetchPlayer, [contact], (err, result) => {
         //preparing query for adding record to Player History table
     insertQueryforPlayerHistory = `INSERT INTO PLAYER_HISTORY 
     (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, Primary_Registration_Date, Secondary_Registration_Date, 
-        GAME_PLAYED, PLATFORM ) 
-    VALUES (?, ?, ?, ?, ?,?, ?, ?, ?, ?)`
+        GAME_PLAYED, PLATFORM, Client_Id ) 
+    VALUES (?, ?, ?, ?, ?,?, ?, ?, ?, ?,?)`
 
         connection.query(
             insertQueryforPlayerHistory,
@@ -394,6 +427,7 @@ connection.query(queryToFetchPlayer, [contact], (err, result) => {
             selected_player_details.Secondary_Registration_Date,
             "NA",
             platform,
+            selected_player_details.Client_Id
             ],
             (err_history) => {
             if (err_history) {
@@ -410,6 +444,7 @@ connection.query(queryToFetchPlayer, [contact], (err, result) => {
                 reg_date: selected_player_details.Primary_Registration_Date,
                 name: selected_player_details.NAME,
                 session_ID: sessionId_player,
+                clientId: selected_player_details.Client_Id
             };
 
             res.status(200).json(playerDetails);
@@ -423,14 +458,20 @@ connection.query(queryToFetchPlayer, [contact], (err, result) => {
 });
 });
 
-playerRouter.post("/loginPlayeroAuth",(req,res)=>{
+playerRouter.post("/loginPlayeroAuth",async (req,res)=>{
 
     const { EMAIL_ID, platform } = req.body;
+    const clientKey = (req.headers['client-key']); //this client is our customer    
+    let clientId = await fetchClientId(clientKey);
+    if(!clientKey){
+        return res.status(400).send("Client Key is required");
+    }
+   
 
     let selected_player_details;
     
     //query to detect if the contact exists
-    const queryToFetchPlayer = `SELECT * from PLAYERS WHERE EMAIL_ID = ?`;
+    const queryToFetchPlayer = `SELECT * from PLAYERS WHERE EMAIL_ID = ? AND Client_Id = ${clientId}`;
     
     connection.query(queryToFetchPlayer, [EMAIL_ID], (err, result) => {
         if (err) {
@@ -441,7 +482,7 @@ playerRouter.post("/loginPlayeroAuth",(req,res)=>{
 
          console.log("new", result);
     
-        if (result) {
+        if (result.length>0) {
         //user found
         selected_player_details = result[0];
         console.log(`Match found - ${result[0].EMAIL_ID}`);
@@ -545,6 +586,8 @@ playerRouter.post("/loginPlayeroAuth",(req,res)=>{
             );
             }
         );
+        } else {
+             res.status(200).json({errorMsg:"No player found with provided email address"});
         }
     });
 });
@@ -611,10 +654,17 @@ connection.query(`DELETE FROM PLAYER_SESSION_DETAILS WHERE SESSION_ID = ?`, [SES
 });
     
 //Create a new Player 
-playerRouter.post("/addPlayer", (req, res) => {
+playerRouter.post("/addPlayer", async (req, res) => {
     const { NAME, EMAIL_ID, contact, CLIENT_IP } = req.body;
+    const clientKey = (req.headers['client-key']); //this client is our customer
+    let clientId = await fetchClientId(clientKey);
 
-    console.log("client ip", CLIENT_IP);
+    if(!clientKey){
+        return res.status(400).send("Client Key is required");
+    }
+   
+
+    console.log("client ip", CLIENT_IP); //this is the IP address of the player 
     console.log("Entered add Player function client ip");
 
     const tempDate = new Date();
@@ -622,8 +672,9 @@ playerRouter.post("/addPlayer", (req, res) => {
 
     // Insert the new player into the database
     connection.query(
-    `INSERT INTO PLAYERS ( CLIENT_IP, Primary_Registration_Date, contact, NAME, EMAIL_ID) VALUES (?, ?, ?, ?, ?)`,
-    [CLIENT_IP, primary_reg_date_player, contact, NAME, EMAIL_ID],
+    `INSERT INTO PLAYERS ( CLIENT_IP, Primary_Registration_Date, contact, NAME, EMAIL_ID, Client_Id) 
+    VALUES (?, ?, ?, ?, ?, ?)`,
+    [CLIENT_IP, primary_reg_date_player, contact, NAME, EMAIL_ID, clientId],
     function (err) {
         if (err) {
         console.error(err.message);
@@ -635,10 +686,20 @@ playerRouter.post("/addPlayer", (req, res) => {
 });
 
 //Create a new Player based on oAuth email
-playerRouter.post("/addPlayeroAuth", (req, res) => {
+playerRouter.post("/addPlayeroAuth", async (req, res) => {
     const { NAME, EMAIL_ID } = req.body;
 
+    if(!EMAIL_ID || !NAME){
+        return res.status(400).send("Email ID and Name are required");
+    }
+
+    const clientKey = (req.headers['client-key']); //this client is our customer
+    const clientId = await fetchClientId(clientKey);
+    if(!clientKey){
+        return res.status(400).send("Client Key is required");
+    }
    
+
     console.log("Entered add Player function oAuth");
 
     const tempDate = new Date();
@@ -646,8 +707,8 @@ playerRouter.post("/addPlayeroAuth", (req, res) => {
 
     // Insert the new player into the database
     connection.query(
-    `INSERT INTO PLAYERS (  Primary_Registration_Date, NAME, EMAIL_ID) VALUES ( ?, ?, ?)`,
-    [ primary_reg_date_player, NAME, EMAIL_ID],
+    `INSERT INTO PLAYERS (  Primary_Registration_Date, NAME, EMAIL_ID, Client_Id) VALUES ( ?, ?, ?,?)`,
+    [ primary_reg_date_player, NAME, EMAIL_ID, clientId],
     function (err) {
         if (err) {
         console.error(err.message);
@@ -659,9 +720,18 @@ playerRouter.post("/addPlayeroAuth", (req, res) => {
 });
 
 //Create a new Player based on contact
-playerRouter.post("/addPlayerContact", (req, res) => {
+playerRouter.post("/addPlayerContact", async(req, res) => {
     const { NAME, contact } = req.body;
 
+    if(!contact){  
+        return res.status(400).send("Contact number is required");
+    }
+    const clientKey = (req.headers['client-key']); //this client is our customer
+    const clientId = await fetchClientId(clientKey);
+
+    if(!clientKey){
+        return res.status(400).send("Client Key is required");
+    }
    
     console.log("Entered add Player function contact");
 
@@ -670,8 +740,8 @@ playerRouter.post("/addPlayerContact", (req, res) => {
 
     // Insert the new player into the database
     connection.query(
-    `INSERT INTO PLAYERS (  Primary_Registration_Date, NAME, contact) VALUES (  ?, ?, ?)`,
-    [ primary_reg_date_player, NAME, contact],
+    `INSERT INTO PLAYERS (  Primary_Registration_Date, NAME, contact, Client_Id) VALUES (  ?, ?, ?, ?)`,
+    [ primary_reg_date_player, NAME, contact, clientId],
     function (err) {
         if (err) {
         console.error(err.message);
@@ -683,12 +753,18 @@ playerRouter.post("/addPlayerContact", (req, res) => {
 })
     
 //update a player
-playerRouter.post("/updatePlayer",(req,res)=>{
+playerRouter.post("/updatePlayer", async (req,res)=>{
 
     const { NAME, EMAIL_ID, contact, CLIENT_IP } = req.body;
+    const clientKey = (req.headers['client-key']); //this client is our customer
+    let clientId = await fetchClientId(clientKey);
+
+    if(!clientKey){
+        return res.status(400).send("Client Key is required");  
+    }
 
     const queryToUpdateClientRecord = `UPDATE PLAYERS SET NAME = '${NAME}', EMAIL_ID='${EMAIL_ID}', contact='${contact}', 
-    Secondary_Registration_Date=? WHERE CLIENT_IP='${CLIENT_IP}';`;
+    Secondary_Registration_Date=? WHERE CLIENT_IP='${CLIENT_IP}' AND Client_Id=${clientId}`;
 
     const tempDate2 = new Date();
     const secondary_reg_date_player = formatDate(tempDate2);
@@ -726,10 +802,17 @@ const fetchPlayerdetails = async (_playerid) => {
 
 
 //detecting when a player starts playing a game and recording it
-playerRouter.post("/gameStarted", (req, res)=>{
+playerRouter.post("/gameStarted", async (req, res)=>{
 
     //capture player's id/email/contact/ip and game_played from the request body
     const {CLIENT_IP, contact, EMAIL_ID, player_id, GAME_PLAYED} = req.body;
+
+    let clientKey = (req.headers['client-key']); //this client is our customer
+    let clientId = await fetchClientId(clientKey);
+    if(!clientKey){
+        return res.status(400).send("Client Key is required");
+    }
+
     let returnedPlayer;
     
     //find player details 
@@ -745,7 +828,8 @@ playerRouter.post("/gameStarted", (req, res)=>{
     
 
     //find out the session details of the user through user email/id/ip from Player_session_details table
-    const queryToFindPlayerSession = `SELECT * FROM PLAYER_SESSION_DETAILS WHERE PLAYERID = ${player_id}`;
+    const queryToFindPlayerSession = `SELECT * FROM PLAYER_SESSION_DETAILS WHERE 
+                                    PLAYERID = ${player_id} AND Client_Id = ${clientId}`;
     const game_start_time = formatDate(new Date());
 
     connection.query(queryToFindPlayerSession, (err, resultRecord)=>{
@@ -759,8 +843,8 @@ playerRouter.post("/gameStarted", (req, res)=>{
    const queryToaddPlayerHistory = `INSERT INTO PLAYER_HISTORY 
     (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, Game_start_time, 
         Primary_Registration_Date, Secondary_Registration_Date, 
-        GAME_PLAYED, PLATFORM ) 
-        VALUES (?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?)`
+        GAME_PLAYED, PLATFORM, Client_Id ) 
+        VALUES (?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?)`
 
     connection.query(
         queryToaddPlayerHistory,
@@ -775,7 +859,8 @@ playerRouter.post("/gameStarted", (req, res)=>{
             returnedPlayer.Primary_Registration_Date,
             returnedPlayer.Secondary_Registration_Date,
             GAME_PLAYED,
-            detectedSession.PLATFORM,   
+            detectedSession.PLATFORM,  
+            detectedSession.Client_Id 
         ],
         (err_history) => {
         if (err_history) {
@@ -793,6 +878,12 @@ playerRouter.post("/gameStarted", (req, res)=>{
 //add points to palyer score
 playerRouter.post("/addPoints",authPlayer,(req, res)=>{
     const {player_id, points} = req.body;
+
+    const clientKey = (req.headers['client-key']); //this client is our customer
+    let clientId = fetchClientId(clientKey);    
+    if(!clientKey){
+        return res.status(400).send("Client Key is required");
+    }
 
     let returnedPlayer;
     let updatedScore;
