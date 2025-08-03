@@ -59,15 +59,14 @@ connection.query(queryToValidatePlayerSession,[sessionId],(err,result)=>{
     if(err){
         res.status(500).send("Error in validating player!",err);
     } else{
-
-                console.log("player found with provided session is",result[0].EMAIL_ID+" "+result[0].contact);
+                console.log("player found with provided session is - email:",result[0].EMAIL_ID+", contact: "+result[0].contact);
                 if(result.length==0){
                     res.status(404).send("Player with valid session not found!");
                 } 
 
-                if(result.length>0 && result[0].PLAYERID != req.body.player_id){
+                if(result.length>0 && result[0].PLAYERID != req.query.player_id){
                     res.status(500).send("Not authorized to perform this operation for other players!")
-                }else if(result.length>0 && result[0].PLAYERID == req.body.player_id){
+                }else if(result.length>0 && result[0].PLAYERID == req.query.player_id){
                     req.user = result[0]; 
                  req.sessionId = sessionId;   
                  next();   

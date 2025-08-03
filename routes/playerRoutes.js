@@ -876,11 +876,11 @@ playerRouter.post("/gameStarted", async (req, res)=>{
 })
 
 //add points to palyer score
-playerRouter.post("/addPoints",authPlayer,(req, res)=>{
+playerRouter.post("/addPoints",authPlayer,async (req, res)=>{
     const {player_id, points} = req.body;
 
     const clientKey = (req.headers['client-key']); //this client is our customer
-    let clientId = fetchClientId(clientKey);    
+    let clientId = await fetchClientId(clientKey);    
     if(!clientKey){
         return res.status(400).send("Client Key is required");
     }
@@ -904,7 +904,8 @@ playerRouter.post("/addPoints",authPlayer,(req, res)=>{
             }
             console.log("inside updated score", updatedScore);
 
-            const querytoAddPoints = `UPDATE PLAYERS SET POINTS = ${updatedScore} WHERE id = ${player_id}`;
+            const querytoAddPoints = `UPDATE PLAYERS SET POINTS = ${updatedScore} WHERE id = ${player_id} 
+                                      AND Client_Id = ${clientId}`;
 
             connection.query(querytoAddPoints, (err_points)=>{
         if(err_points){
@@ -926,9 +927,16 @@ playerRouter.post("/addPoints",authPlayer,(req, res)=>{
 
 
 //fetch player score
-playerRouter.get("/fetchPlayerScore", authPlayer, (req, res)=>{
+playerRouter.get("/fetchPlayerScore", authPlayer, async (req, res)=>{
     const {player_id} = req.query;
-    const queryToFetchPlayerScore = `SELECT id, NAME, POINTS from PLAYERS WHERE id=${player_id}`;
+
+    const clientKey = (req.headers['client-key']); //this client is our customer
+    let clientId = await fetchClientId(clientKey);
+    if(!clientKey){
+        return res.status(400).send("Client Key is required");
+    }
+    
+    const queryToFetchPlayerScore = `SELECT id, NAME, POINTS from PLAYERS WHERE id=${player_id} AND Client_Id = ${clientId}`;
 
     connection.query(queryToFetchPlayerScore, (err, result)=>{
         if(err){
@@ -947,12 +955,19 @@ playerRouter.get("/fetchPlayerScore", authPlayer, (req, res)=>{
 });
 
 //update Active duration of one game for a player - Obsolete? as we have sessions per player API
-playerRouter.patch("/game_duration", (req,res)=>{
+playerRouter.patch("/game_duration", async (req,res)=>{
     const {sessionId, duration, GAME_PLAYED} = req.query;
+
+    const clientKey = (req.headers['client-key']); //this client is our customer
+    if(!clientKey){
+        return res.status(400).send("Client Key is required");
+    }
+    let clientId = await fetchClientId(clientKey);
 
     console.log("queryParams", sessionId, duration);
 
-    const queryToUpdateDuration = `UPDATE PLAYER_HISTORY SET ACTIVE_DURATION =? WHERE SESSION_ID =? AND GAME_PLAYED=?`;
+    const queryToUpdateDuration = `UPDATE PLAYER_HISTORY SET ACTIVE_DURATION =? WHERE SESSION_ID =? 
+                                    AND GAME_PLAYED=? AND Client_Id = ${clientId}`;
 
     connection.query(queryToUpdateDuration, [duration, sessionId, GAME_PLAYED], (err,resultDuration)=>{
         if(err){
