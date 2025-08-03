@@ -400,3 +400,10 @@ module.exports = misUserRouter
 //UPDATE PLAYER_HISTORY ph
 //JOIN PLAYERS p ON ph.PLAYERID = p.id
 //SET ph.Client_Id = p.Client_Id;
+
+
+//ALTER TABLE Clients ADD COLUMN Client_Key VARCHAR(36) NOT NULL UNIQUE;
+//Modify tables PLAYERS and PLAEYER_HISTORY to add Client_Id
+//MODIFY INSERT INTO commands for PLAYERS and PLAYER_HISTORY to include Client_Id
+//MODIFY INSERT INTO commands for Client table to include Client_Key
+//Modify PLAYERS table - make a combo of Client_Id and Email_ID (or Client_Id and contact) as unique

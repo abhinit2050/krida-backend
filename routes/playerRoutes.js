@@ -8,7 +8,26 @@ const formatDate = require("../utils/formatDate");
 const moment = require("moment");
 const { authPlayer } = require("../middlewares/authMW");
 
+//AND Client_id = ${clientId}
 
+
+function fetchClientId(clientKey){
+    
+    return new Promise((resolve, reject) => {
+        
+        const query = `SELECT id FROM Clients WHERE CLIENT_KEY = ?`;
+        connection.query(query, [clientKey], (err, result) => {
+            if (err) {
+                return reject(err);
+            }
+            if (result.length > 0) {
+                resolve(result[0].id);
+            } else {
+                resolve(null);
+            }
+        });
+    });
+}
 //GET Ip address of the player
 playerRouter.get('/fetchip', async (req, res) => {
 
@@ -44,11 +63,15 @@ playerRouter.get('/sendOTP', async(req, res)=>{
 })
       
 //check for duplicity of a player based on IP address
-playerRouter.get("/playerdupcheck",(req, res)=>{
+playerRouter.get("/playerdupcheck",async (req, res)=>{
 
-    const {CLIENT_IP} = req.query;
+    const {CLIENT_IP} = req.query; //this client is player
+    const clientKey = (req.headers['client-key']); //this client is our customer
+
+    let clientId = await fetchClientId(clientKey);
+    console.log("clientId", clientId);
     
-    const queryToFetchDuplicatePlayers = `SELECT COUNT(*) FROM PLAYERS WHERE CLIENT_IP=?`
+    const queryToFetchDuplicatePlayers = `SELECT COUNT(*) FROM PLAYERS WHERE CLIENT_IP=? && client_id = ${clientId }`;
     const params = [CLIENT_IP];
 
 
@@ -74,27 +97,30 @@ playerRouter.get("/playerdupcheck",(req, res)=>{
 });
 
 //check duplicity of a player based on email - PENDING
-playerRouter.get("/playerdupcheckoAuth",(req, res)=>{
+playerRouter.get("/playerdupcheckoAuth",async (req, res)=>{
 
     const {EMAIL_ID} = req.query;
+    const clientKey = (req.headers['client-key']); //this client is our customer
+    let clientId = await fetchClientId(clientKey);
     
-    const queryToFetchDuplicatePlayers = `SELECT COUNT(*) FROM PLAYERS WHERE EMAIL_ID=?`
+    const queryToFetchDuplicatePlayers = `SELECT COUNT(*) FROM PLAYERS WHERE EMAIL_ID=? AND 
+                                        Client_id = ${clientId}`;
     const params = [EMAIL_ID];
 
-    console.log("em", EMAIL_ID);
+    console.log("cid", clientId);
 
     connection.query(queryToFetchDuplicatePlayers, params, (err, resultDuplicate)=>{
     if (err) {
-        res.status(500).send("Error " + err);
+        res.status(500).send("Error aaya" + err);
         return;
     }
-    if(resultDuplicate['COUNT(*)']>0){
-        console.log("res dupT", resultDuplicate['COUNT(*)']);
+    if(resultDuplicate[0]['COUNT(*)']>0){
+        console.log("res dupT", resultDuplicate[0]['COUNT(*)']);
         res.status(201).send(true);
     } else {
         console.log("res dup", resultDuplicate);
         
-        console.log("res dupF", resultDuplicate['COUNT(*)']);
+        console.log("res dupF", resultDuplicate[0]['COUNT(*)']);
         res.status(201).send(false);
     }
     
@@ -103,11 +129,14 @@ playerRouter.get("/playerdupcheckoAuth",(req, res)=>{
 });
 
 //check duplicity of a player based on mobile number
-playerRouter.get("/playerdupcheckContact",(req, res)=>{
+playerRouter.get("/playerdupcheckContact",async (req, res)=>{
 
     const {contact} = req.query;
+    const clientKey = (req.headers['client-key']); //this client is our customer
+    let clientId = await fetchClientId(clientKey);
     
-    const queryToFetchDuplicatePlayers = `SELECT COUNT(*) FROM PLAYERS WHERE contact=?`
+    const queryToFetchDuplicatePlayers = `SELECT COUNT(*) FROM PLAYERS WHERE contact=? AND 
+                                        Client_id = ${clientId}`
     const params = [contact];
 
 
@@ -117,7 +146,7 @@ playerRouter.get("/playerdupcheckContact",(req, res)=>{
         return;
     }
     if(resultDuplicate[0]['COUNT(*)']>0){
-        console.log("res dupT", resultDuplicate['COUNT(*)']);
+        console.log("res dupT", resultDuplicate[0]['COUNT(*)']);
         res.status(201).send(true);
     } else {
         console.log("res dup", resultDuplicate[0]);
@@ -131,13 +160,15 @@ playerRouter.get("/playerdupcheckContact",(req, res)=>{
 });
 
 //login API for player- Client IP 
-playerRouter.post("/loginPlayerip", (req, res) => {
+playerRouter.post("/loginPlayerip", async (req, res) => {
 const { platform, CLIENT_IP, GAME_PLAYED } = req.body;
+const clientKey = (req.headers['client-key']); //this client is our customer
+let clientId = await fetchClientId(clientKey);
 
 let selected_player_details;
 
 //query to detect if the ip exists
-const queryToFetchPlayer = `SELECT * from PLAYERS WHERE CLIENT_IP = ?`;
+const queryToFetchPlayer = `SELECT * from PLAYERS WHERE CLIENT_IP = ? AND Client_id = ${clientId}`;
 
 connection.query(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
     
@@ -149,8 +180,8 @@ connection.query(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
 
     if (result) {
     //user found
-    selected_player_details = result;
-    console.log(`Match found - ${result.CLIENT_IP}`);
+    selected_player_details = result[0];
+    console.log(`Match found - ${result[0].CLIENT_IP}`);
 
     // Generate a UUID (Universally Unique Identifier)
     const uuid = uuidv4();
@@ -165,8 +196,8 @@ connection.query(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
 
     //Add a record to PLAYER_SESSION_DETAILS
     const insertQueryforPlayerSession = `INSERT INTO PLAYER_SESSION_DETAILS 
-        (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, PLATFORM, GAME_PLAYED ) 
-        VALUES (?, ?, ?, ?, ?,?, ?, ?)`;
+        (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, PLATFORM, GAME_PLAYED, Client_Id ) 
+        VALUES (?, ?, ?, ?, ?,?, ?, ?,?)`;
 
     connection.query(
         insertQueryforPlayerSession,
@@ -178,7 +209,8 @@ connection.query(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
         sessionId_player,
         logintime2_player,
         platform,
-        GAME_PLAYED
+        GAME_PLAYED,
+        selected_player_details.Client_Id
         ],
         (err_insert) => {
         if (err_insert) {
@@ -213,8 +245,8 @@ connection.query(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
         //preparing query for adding record to Player History table
         const insertQueryforPlayerHistory = `INSERT INTO PLAYER_HISTORY 
     (PLAYERID, EMAIL_ID, contact, CLIENT_IP, SESSION_ID, LOGIN_TIME_STAMP, Primary_Registration_Date, 
-        GAME_PLAYED, PLATFORM ) 
-    VALUES (?, ?, ?, ?, ?,?, ?, ?, ?);`;
+        GAME_PLAYED, PLATFORM, Client_Id ) 
+    VALUES (?, ?, ?, ?, ?,?, ?, ?, ?,?);`;
 
         connection.query(
             insertQueryforPlayerHistory,
@@ -228,6 +260,7 @@ connection.query(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
             player_primary_reg_date,
             GAME_PLAYED,
             platform,
+            clientId
             ],
             (err_history) => {
             if (err_history) {
@@ -244,6 +277,7 @@ connection.query(queryToFetchPlayer, [CLIENT_IP], (err, result) => {
                 reg_date: selected_player_details.Primary_Registration_Date,
                 name: selected_player_details.NAME,
                 session_ID: sessionId_player,
+                clientId: clientId
             };
 
             res.status(200).json(playerDetails);
