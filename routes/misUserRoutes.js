@@ -401,9 +401,16 @@ module.exports = misUserRouter
 //JOIN PLAYERS p ON ph.PLAYERID = p.id
 //SET ph.Client_Id = p.Client_Id;
 
+//to remove the unique contraint on email_ID and contact
+//SHOW INDEX FROM krida_MIS.PLAYERS WHERE Non_unique = 0;
+//ALTER TABLE PLAYERS DROP INDEX EMAIL_ID;
+//ALTER TABLE PLAYERS DROP INDEX CONTACT;
+
+
+
 
 //ALTER TABLE Clients ADD COLUMN Client_Key VARCHAR(36) NOT NULL UNIQUE;
 //Modify tables PLAYERS and PLAEYER_HISTORY to add Client_Id
-//MODIFY INSERT INTO commands for PLAYERS and PLAYER_HISTORY to include Client_Id
+//MODIFY INSERT INTO commands for PLAYERS, PLAYER_SESSION_DETAILS and PLAYER_HISTORY to include Client_Id
 //MODIFY INSERT INTO commands for Client table to include Client_Key
 //Modify PLAYERS table - make a combo of Client_Id and Email_ID (or Client_Id and contact) as unique
