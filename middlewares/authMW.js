@@ -53,9 +53,10 @@ const authPlayer = async(req,res,next)=>{
     const queryToValidatePlayerSession = `SELECT * 
 FROM PLAYER_SESSION_DETAILS 
 WHERE SESSION_ID = ? 
-  AND (EMAIL_ID IS NOT NULL OR CONTACT IS NOT NULL);`;
+  AND (EMAIL_ID IS NOT NULL OR contact IS NOT NULL);`;
 
 connection.query(queryToValidatePlayerSession,[sessionId],(err,result)=>{
+    console.log("result zero", result[0]);
     if(err){
         res.status(500).send("Error in validating player!",err);
     } else{

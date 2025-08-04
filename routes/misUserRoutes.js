@@ -377,7 +377,7 @@ module.exports = misUserRouter
 
 //SET SQL_SAFE_UPDATES = 0;
 
-//UPDATE Clients
+// UPDATE Clients
 // JOIN (
 //   SELECT id, UUID() AS new_uuid
 //   FROM Clients
@@ -397,9 +397,9 @@ module.exports = misUserRouter
 //UPDATE PLAYERS SET Client_Id = FLOOR(1 + (RAND() * 6));
 //SET SQL_SAFE_UPDATES = 1;
 
-//UPDATE PLAYER_HISTORY ph
-//JOIN PLAYERS p ON ph.PLAYERID = p.id
-//SET ph.Client_Id = p.Client_Id;
+// UPDATE PLAYER_HISTORY ph
+// JOIN PLAYERS p ON ph.PLAYERID = p.id
+// SET ph.Client_Id = p.Client_Id;
 
 //to remove the unique contraint on email_ID and contact
 //SHOW INDEX FROM krida_MIS.PLAYERS WHERE Non_unique = 0;
@@ -410,7 +410,9 @@ module.exports = misUserRouter
 
 
 //ALTER TABLE Clients ADD COLUMN Client_Key VARCHAR(36) NOT NULL UNIQUE;
-//Modify tables PLAYERS and PLAEYER_HISTORY to add Client_Id
+//Modify tables PLAYERS, PLAYER_SESSION_DETAILS and PLAYER_HISTORY to add Client_Id
 //MODIFY INSERT INTO commands for PLAYERS, PLAYER_SESSION_DETAILS and PLAYER_HISTORY to include Client_Id
 //MODIFY INSERT INTO commands for Client table to include Client_Key
 //Modify PLAYERS table - make a combo of Client_Id and Email_ID (or Client_Id and contact) as unique
+
+//remove Unique constrain on CLIENT_IP as well

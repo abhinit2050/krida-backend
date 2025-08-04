@@ -807,6 +807,10 @@ playerRouter.post("/gameStarted", async (req, res)=>{
     //capture player's id/email/contact/ip and game_played from the request body
     const {CLIENT_IP, contact, EMAIL_ID, player_id, GAME_PLAYED} = req.body;
 
+    if( !player_id || !GAME_PLAYED){
+        return res.status(400).send("Player ID and Game Played are required");
+    }
+
     let clientKey = (req.headers['client-key']); //this client is our customer
     let clientId = await fetchClientId(clientKey);
     if(!clientKey){
@@ -876,8 +880,9 @@ playerRouter.post("/gameStarted", async (req, res)=>{
 })
 
 //add points to palyer score
-playerRouter.post("/addPoints",authPlayer,async (req, res)=>{
-    const {player_id, points} = req.body;
+playerRouter.post("/addPoints",authPlayer,async (req, res)=>{  
+    const { points} = req.body;
+    const {player_id} = req.query;
 
     const clientKey = (req.headers['client-key']); //this client is our customer
     let clientId = await fetchClientId(clientKey);    
