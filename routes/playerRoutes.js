@@ -961,7 +961,7 @@ playerRouter.get("/fetchPlayerScore", authPlayer, async (req, res)=>{
 
 //update Active duration of one game for a player - Obsolete? as we have sessions per player API
 playerRouter.patch("/game_duration", async (req,res)=>{
-    const {sessionId, duration, GAME_PLAYED} = req.query;
+    const {sessionId, duration, GAME_PLAYED} = req.body;
 
     const clientKey = (req.headers['client-key']); //this client is our customer
     if(!clientKey){

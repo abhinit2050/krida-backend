@@ -28,8 +28,9 @@ metricRouter.get("/fetchActivePlayers", authMisUser, (req, res) => {
     let todayDate = new Date();
     todayDate = formatDate(todayDate);
    todayDate = (todayDate.split(' ')[0]);
+   console.log("req user", req.user);
     let clientId = req.user[0].client_id;
-    console.log("client ID", clientId);
+
    
     let existing_players =[]
   
@@ -300,7 +301,6 @@ const clientId = req.user[0].client_id;
 
 console.log(fromDate, toDate);
 
-  // Validate inputs (optional but good practice)
   if (!fromDate || !toDate) {
     return res.status(400).json({ error: "Missing fromDate or toDate" });
   }

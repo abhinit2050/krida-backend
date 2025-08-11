@@ -72,7 +72,6 @@ misUserRouter.post("/login", (req, res) => {
     if (result) {
       //user found
       selected_user_details = result[0];
-      console.log(`Match found now-`, JSON.stringify(selected_user_details));
 
 
       connection.query(queryToFetchPassword, [email_ID], (err, result_pwd) => {
