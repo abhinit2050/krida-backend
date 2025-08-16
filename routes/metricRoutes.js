@@ -120,6 +120,8 @@ connection.query(
 });
 
 
+
+
 //fetch details of all the games played between 2 dates (both inclusive)
 metricRouter.get("/game_total_count", authMisUser, (req, res) => {
 // Extract the from date and to date from the query parameters
@@ -182,7 +184,43 @@ metricRouter.get("/total_time_played", authMisUser, (req, res) => {
         res.json(REALTIME_CARD_DATA);
     });
     });
+
+//fetch total duration of game played between 2 dates for a given date range
+metricRouter.post("/total_time_played/bulk", authMisUser, async (req, res) => {
+    
+     const dateRanges = req.body.dateRanges;
+    const clientId = req.user[0].client_id;
+
+    // Query to get the count of players registered between the from date and to date
+    const queryToFetchTotalTimePlayed =
+        `SELECT SUM(ACTIVE_DURATION) AS total_duration FROM PLAYER_HISTORY WHERE GAME_PLAYED != 'NA' AND 
+       Client_Id=${clientId} AND LOGIN_TIME_STAMP BETWEEN ? AND ?`;
+    
+        try {
+      const results = await Promise.all(
+        dateRanges.map(({ fromDate, toDate }) => {
+            let fromDateNew = new Date(fromDate);
+            let toDateNew = new Date(toDate);
+
+          return new Promise((resolve, reject) => {
+            connection.query(queryToFetchTotalTimePlayed, [fromDateNew, toDateNew], (err, rows) => {
+              if (err) {
+                return reject(err);
+              }
+              resolve(rows.length); // Only return the metricValue
+            });
+          });
+        })
+      );
   
+      res.json(results); // Array of 7 numbers
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Failed to fetch data for one or more date ranges." });
+    }
+    });
+  
+
 //fetch unique players who played between 2 dates (both inclusive)
 metricRouter.get("/unique_player_count", authMisUser, (req, res) => {
 // Extract the from date and to date from the query parameters
@@ -203,7 +241,44 @@ connection.query(queryToFetchUniquePlayers, [fromDate, toDate], (err, row) => {
     res.status(201).send(row);
 });
 });
+
+//fetch results for new player registrations for last 7 periods based on date ranges received
+metricRouter.post("/unique_player_count/bulk", authMisUser, async (req, res) => {
+    const dateRanges = req.body.dateRanges;
+    const clientId = req.user[0].client_id;
   
+    if (!Array.isArray(dateRanges) || dateRanges.length !== 7) {
+      return res.status(400).json({ error: "Please provide exactly 7 date ranges." });
+    }
+  
+    const queryToFetchUniquePlayers = `SELECT COUNT(DISTINCT PLAYERID) AS total_unique_players FROM PLAYER_HISTORY
+WHERE Client_Id=${clientId} AND LOGIN_TIME_STAMP BETWEEN ? AND ?;`;
+
+  
+    try {
+      const results = await Promise.all(
+        dateRanges.map(({ fromDate, toDate }) => {
+            let fromDateNew = new Date(fromDate);
+            let toDateNew = new Date(toDate);
+
+          return new Promise((resolve, reject) => {
+            connection.query(queryToFetchUniquePlayers, [fromDateNew, toDateNew], (err, rows) => {
+              if (err) {
+                return reject(err);
+              }
+              resolve(rows.length); // Only return the metricValue
+            });
+          });
+        })
+      );
+  
+      res.json(results); // Array of 7 numbers
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: "Failed to fetch data for one or more date ranges." });
+    }
+  });
+
 //fetch the count of players registered between 2 dates (both inclusive) 
 metricRouter.get("/new_player_count", authMisUser, (req, res) => {
 
@@ -247,48 +322,55 @@ connection.query(queryToFetchNewPlayers, [fromDate, toDate],(errNew, rowNew) => 
 });
 
 
-//fetch results for new player registrations for last 7 periods based on date ranges received
-metricRouter.post("/unique_player_count/bulk", authMisUser, async (req, res) => {
-    const dateRanges = req.body.dateRanges;
-    const clientId = req.user[0].client_id;
-  
-    if (!Array.isArray(dateRanges) || dateRanges.length !== 7) {
+//fetch the count of players registered between 2 dates (both inclusive) of a given date range
+metricRouter.post("/new_player_count/bulk", authMisUser, async (req, res) => {
+
+    // Extract the from date and to date from the query parameters
+const dateRanges = req.body.dateRanges;
+const clientId = req.user[0].client_id;
+
+if (!Array.isArray(dateRanges) || dateRanges.length !== 7) {
       return res.status(400).json({ error: "Please provide exactly 7 date ranges." });
     }
-  
-    const queryToFetchNewPlayers = `
-        SELECT 
-      PLAYERID,
-      ANY_VALUE(id) AS id,
-      ANY_VALUE(PRIMARY_REGISTRATION_DATE) AS PRIMARY_REGISTRATION_DATE,
-      ANY_VALUE(GAME_PLAYED) AS GAME_PLAYED,
-      ANY_VALUE(CONTACT) AS CONTACT
-    FROM PLAYER_HISTORY
-    WHERE Client_Id=${clientId} AND PRIMARY_REGISTRATION_DATE BETWEEN ? AND ? GROUP BY PLAYERID;`
-  
-    try {
-      const results = await Promise.all(
-        dateRanges.map(({ fromDate, toDate }) => {
-            let fromDateNew = new Date(fromDate);
-            let toDateNew = new Date(toDate);
 
-          return new Promise((resolve, reject) => {
-            connection.query(queryToFetchNewPlayers, [fromDateNew, toDateNew], (err, rows) => {
-              if (err) {
-                return reject(err);
-              }
-              resolve(rows.length); // Only return the metricValue
-            });
-          });
-        })
-      );
-  
-      res.json(results); // Array of 7 numbers
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Failed to fetch data for one or more date ranges." });
-    }
-  });
+const queryToFetchNewPlayers =
+`SELECT 
+  PLAYERID,
+  ANY_VALUE(id) AS id,
+  ANY_VALUE(PRIMARY_REGISTRATION_DATE) AS PRIMARY_REGISTRATION_DATE,
+  ANY_VALUE(GAME_PLAYED) AS GAME_PLAYED,
+  ANY_VALUE(CONTACT) AS CONTACT
+FROM PLAYER_HISTORY
+WHERE Client_Id=${clientId} AND PRIMARY_REGISTRATION_DATE BETWEEN ? AND ?
+GROUP BY PLAYERID;`
+
+
+try {
+  const results = await Promise.all(
+    dateRanges.map(({ fromDate, toDate }) => {
+      let fromDateNew = new Date(fromDate);
+      let toDateNew = new Date(toDate);
+
+      return new Promise((resolve, reject) => {
+        connection.query(queryToFetchNewPlayers, [fromDateNew, toDateNew], (err, rows) => {
+          if (err) {
+            return reject(err);
+          }
+          // Wrap in object instead of just rows.length
+          resolve(rows.length);
+        });
+      });
+    })
+  );
+
+  res.json(results); // Array of objects (one per date range)
+} catch (error) {
+  console.error(error);
+  res.status(500).json({ error: "Failed to fetch data for one or more date ranges." });
+}
+
+
+});
 
 
 //modified returning player count
