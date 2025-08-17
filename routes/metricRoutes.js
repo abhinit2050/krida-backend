@@ -413,6 +413,46 @@ console.log(fromDate, toDate);
   });
 });
 
+metricRouter.post("/ret_player_count/bulk", authMisUser, async (req, res) => {
+ 
+
+const dateRanges = req.body.dateRanges;
+const clientId = req.user[0].client_id;
+
+
+if (!Array.isArray(dateRanges) || dateRanges.length !== 7) {
+      return res.status(400).json({ error: "Please provide exactly 7 date ranges." });
+    }
+
+  // Query: select unique PLAYERIDs whose login is in range and after registration
+  const queryTofetchReturnPlayers = `SELECT PLAYERID FROM PLAYER_HISTORY WHERE Client_Id=${clientId} AND LOGIN_TIME_STAMP BETWEEN ? AND ?
+  AND LOGIN_TIME_STAMP > PRIMARY_REGISTRATION_DATE GROUP BY PLAYERID;`;
+
+    try {
+  const results = await Promise.all(
+    dateRanges.map(({ fromDate, toDate }) => {
+      let fromDateNew = new Date(fromDate);
+      let toDateNew = new Date(toDate);
+
+      return new Promise((resolve, reject) => {
+        connection.query(queryTofetchReturnPlayers, [fromDateNew, toDateNew], (err, rows) => {
+          if (err) {
+            return reject(err);
+          }
+          
+          resolve(rows.length);
+        });
+      });
+    })
+  );
+
+  res.json(results); // Array of objects (one per date range)
+} catch (error) {
+  console.error(error);
+  res.status(500).json({ error: "Failed to fetch data for one or more date ranges." });
+}
+});
+
   
 //average playing time for a game between two dates
 metricRouter.get("/averagePlayTime", authMisUser, (req, res) => {
@@ -448,6 +488,65 @@ connection.query(`SELECT ACTIVE_DURATION FROM PLAYER_HISTORY WHERE Client_Id=${c
 });
 });
   
+
+metricRouter.post("/averagePlayTime/bulk", authMisUser, async (req, res) => {
+  const { GAME_PLAYED } = req.query;
+  const dateRanges = req.body.dateRanges;
+  const clientId = req.user[0].client_id;
+
+  if (!Array.isArray(dateRanges) || dateRanges.length !== 7) {
+    return res.status(400).json({ error: "Please provide exactly 7 date ranges." });
+  }
+
+  const queryToFindAveragePlayTime = `
+    SELECT ACTIVE_DURATION 
+    FROM PLAYER_HISTORY 
+    WHERE Client_Id = ? 
+      AND GAME_PLAYED = ? 
+      AND LOGIN_TIME_STAMP BETWEEN ? AND ?
+  `;
+
+  try {
+    const results = await Promise.all(
+      dateRanges.map(({ fromDate, toDate }) => {
+        let fromDateNew = new Date(fromDate);
+        let toDateNew = new Date(toDate);
+
+        return new Promise((resolve, reject) => {
+          connection.query(
+            queryToFindAveragePlayTime,
+            [clientId, GAME_PLAYED, fromDateNew, toDateNew],
+            (err, rows) => {
+              if (err) {
+                return reject(err);
+              }
+
+              let sum = 0;
+              let count = 0;
+
+              rows.forEach((row) => {
+                if (row.ACTIVE_DURATION !== null) {
+                  sum += parseFloat(row.ACTIVE_DURATION);
+                  count++;
+                }
+              });
+
+              const averageActiveDuration = count > 0 ? sum / count : 0;
+
+              resolve(averageActiveDuration);
+            }
+          );
+        });
+      })
+    );
+
+    res.json(results);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch data for one or more date ranges." });
+  }
+});
+
   
 //Average game played count per player for a specified date range
 metricRouter.get("/games_per_player", authMisUser,(req,res)=>{
@@ -500,6 +599,75 @@ connection.query(queryToFetchGameTotalCount, [fromDate, toDate], (err, row) => {
 });
 })
 
+metricRouter.post("/games_per_player/bulk", authMisUser, async (req, res) => {
+  const dateRanges = req.body.dateRanges;
+  const clientId = req.user[0].client_id;
+
+  if (!Array.isArray(dateRanges) || dateRanges.length !== 7) {
+    return res.status(400).json({ error: "Please provide exactly 7 date ranges." });
+  }
+
+  const queryToFetchGameTotalCount = `
+    SELECT COUNT(*) AS game_count_total_query 
+    FROM PLAYER_HISTORY 
+    WHERE Client_Id = ? 
+      AND GAME_PLAYED <> 'NA' 
+      AND LOGIN_TIME_STAMP BETWEEN ? AND ?`;
+
+  const queryTofetchDistinctPlayerCount = `
+    SELECT COUNT(DISTINCT PLAYERID) AS distinct_players_count
+    FROM PLAYER_HISTORY 
+    WHERE Client_Id = ? 
+      AND GAME_PLAYED <> 'NA' 
+      AND LOGIN_TIME_STAMP BETWEEN ? AND ?`;
+
+  try {
+    const results = await Promise.all(
+      dateRanges.map(({ fromDate, toDate }) => {
+        let fromDateNew = new Date(fromDate);
+        let toDateNew = new Date(toDate);
+
+        return new Promise((resolve, reject) => {
+          // First query: total game count
+          connection.query(
+            queryToFetchGameTotalCount,
+            [clientId, fromDateNew, toDateNew],
+            (err, row) => {
+              if (err) return reject(err);
+
+              const game_count_total = row[0].game_count_total_query;
+
+              // Second query: distinct players
+              connection.query(
+                queryTofetchDistinctPlayerCount,
+                [clientId, fromDateNew, toDateNew],
+                (errPlCount, rowPlCount) => {
+                  if (errPlCount) return reject(errPlCount);
+
+                  const player_count_total = rowPlCount[0].distinct_players_count;
+
+                  const metricValue =
+                    player_count_total > 0
+                      ? (game_count_total / player_count_total).toFixed(2)
+                      : 0;
+
+                  resolve(metricValue);
+                }
+              );
+            }
+          );
+        });
+      })
+    );
+
+    res.json(results);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch data for one or more date ranges." });
+  }
+});
+
+
 //Total number of sessions played per player - PENDING
 metricRouter.get("/sessions_per_player", authMisUser, (req, res)=>{
 
@@ -539,7 +707,61 @@ connection.query(queryToFetchTotalSessionCount, [fromDate, toDate], (err, row) =
   });
 
 })
-  
+
+metricRouter.post("/sessions_per_player/bulk", authMisUser, async (req, res) => {
+  const dateRanges = req.body.dateRanges;
+  const clientId = req.user[0].client_id;
+
+  if (!Array.isArray(dateRanges) || dateRanges.length !== 7) {
+    return res.status(400).json({ error: "Please provide exactly 7 date ranges." });
+  }
+
+  const queryToFetchTotalSessionCount = `
+    SELECT 
+      CAST((SUM(IFNULL(ACTIVE_DURATION, 0)) + 59) / 30 AS SIGNED) AS total_minutes, 
+      COUNT(*) AS total_rows 
+    FROM PLAYER_HISTORY 
+    WHERE Client_Id = ? 
+      AND LOGIN_TIME_STAMP BETWEEN ? AND ?
+  `;
+
+  try {
+    const results = await Promise.all(
+      dateRanges.map(({ fromDate, toDate }) => {
+        let fromDateNew = new Date(fromDate);
+        let toDateNew = new Date(toDate);
+
+        return new Promise((resolve, reject) => {
+          connection.query(
+            queryToFetchTotalSessionCount,
+            [clientId, fromDateNew, toDateNew],
+            (err, row) => {
+              if (err) {
+                return reject(err);
+              }
+
+              const { total_minutes, total_rows } = row[0];
+
+              if (total_rows === 0) {
+                return resolve(0);
+              }
+
+              const average = total_minutes / total_rows;
+
+              resolve(average.toFixed(2));
+            }
+          );
+        });
+      })
+    );
+
+    res.json(results);
+  } catch (error) {
+    console.error("Bulk sessions_per_player error:", error);
+    res.status(500).json({ error: "Failed to fetch data for one or more date ranges." });
+  }
+});
+
   
 //Individual game counts for a specified date range
 metricRouter.get("/each_game_count",authMisUser,(req,res)=>{
@@ -588,6 +810,52 @@ metricRouter.get("/conversion_count", authMisUser, (req, res) => {
         res.status(200).json(row[0]); // returns { conversion_count: <number> }
     });
 });
+
+metricRouter.post("/conversion_count/bulk", authMisUser, async (req, res) => {
+  const dateRanges = req.body.dateRanges;
+  const clientId = req.user[0].client_id;
+
+  if (!Array.isArray(dateRanges) || dateRanges.length !== 7) {
+    return res.status(400).json({ error: "Please provide exactly 7 date ranges." });
+  }
+
+  const query = `
+    SELECT COUNT(*) AS conversion_count
+    FROM PLAYERS
+    WHERE Client_Id = ? 
+      AND Primary_Registration_Date BETWEEN ? AND ?
+      AND (
+        (EMAIL_ID IS NOT NULL AND EMAIL_ID != '')
+        OR
+        (contact IS NOT NULL AND contact != '')
+      )
+  `;
+
+  try {
+    const results = await Promise.all(
+      dateRanges.map(({ fromDate, toDate }) => {
+        let fromDateNew = new Date(fromDate);
+        let toDateNew = new Date(toDate);
+
+        return new Promise((resolve, reject) => {
+          connection.query(query, [clientId, fromDateNew, toDateNew], (err, row) => {
+            if (err) {
+              return reject(err);
+            }
+
+            resolve( row[0].conversion_count);
+          });
+        });
+      })
+    );
+
+    res.json(results);
+  } catch (error) {
+    console.error("Bulk conversion_count error:", error);
+    res.status(500).json({ error: "Failed to fetch conversion_count for one or more date ranges." });
+  }
+});
+
 
 //conversion rate for a specified date range
 metricRouter.get("/conversion_rate", authMisUser, (req, res) => {
@@ -638,6 +906,73 @@ metricRouter.get("/conversion_rate", authMisUser, (req, res) => {
         });
     });
 });
+
+metricRouter.post("/conversion_rate/bulk", authMisUser, async (req, res) => {
+  const dateRanges = req.body.dateRanges;
+  const clientId = req.user[0].client_id;
+
+  if (!Array.isArray(dateRanges) || dateRanges.length !== 7) {
+    return res.status(400).json({ error: "Please provide exactly 7 date ranges." });
+  }
+
+  const totalQuery = `
+    SELECT COUNT(*) AS total_count 
+    FROM PLAYERS 
+    WHERE Primary_Registration_Date BETWEEN ? AND ?`;
+
+  const convertedQuery = `
+    SELECT COUNT(*) AS converted_count 
+    FROM PLAYERS 
+    WHERE Client_Id = ? 
+      AND Primary_Registration_Date BETWEEN ? AND ?
+      AND (
+        (EMAIL_ID IS NOT NULL AND EMAIL_ID != '')
+        OR
+        (contact IS NOT NULL AND contact != '')
+      )`;
+
+  try {
+    const results = await Promise.all(
+      dateRanges.map(({ fromDate, toDate }) => {
+        let fromDateNew = new Date(fromDate);
+        let toDateNew = new Date(toDate);
+
+        return new Promise((resolve, reject) => {
+          // Step 1: get total players
+          connection.query(totalQuery, [fromDateNew, toDateNew], (errTotal, totalRow) => {
+            if (errTotal) return reject(errTotal);
+
+            const totalCount = totalRow[0].total_count;
+
+            if (totalCount === 0) {
+              return resolve(0);
+            }
+
+            // Step 2: get converted players
+            connection.query(
+              convertedQuery,
+              [clientId, fromDateNew, toDateNew],
+              (errConverted, convertedRow) => {
+                if (errConverted) return reject(errConverted);
+
+                const convertedCount = convertedRow[0].converted_count;
+                const conversionRate = (convertedCount / totalCount) * 100;
+
+                resolve(conversionRate.toFixed(2));
+              }
+            );
+          });
+        });
+      })
+    );
+
+    res.json(results);
+  } catch (error) {
+    console.error("Bulk conversion_rate error:", error);
+    res.status(500).json({ error: "Failed to fetch conversion_rate for one or more date ranges." });
+  }
+});
+
 
 
 module.exports = metricRouter;
